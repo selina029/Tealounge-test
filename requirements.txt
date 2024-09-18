@@ -1,0 +1,10 @@
+flask
+line-bot-ask==1.18.0
+gunicorn
+Flask-SQLAlchemy
+Werkzeug
+python-dotenv
+Flask-Login
+Flask-Mail
+WTForms
+SQLAlchemy
