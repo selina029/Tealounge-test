@@ -9,3 +9,4 @@ Flask-Mail
 WTForms
 SQLAlchemy
 flask_wtf
+psycopg2
