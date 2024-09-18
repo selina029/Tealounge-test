@@ -1,5 +1,5 @@
 flask
-line-bot-ask==1.18.0
+line-bot-adk==1.18.0
 gunicorn
 Flask-SQLAlchemy
 Werkzeug
