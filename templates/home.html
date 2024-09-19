@@ -45,16 +45,14 @@
             display: flex;
             align-items: center;
         }
-        
         .icons a {
             margin-left: 10px;
             cursor: pointer;
         }
-        
         .icons img {
             width: 24px;
             height: 24px;
-        }   
+        }
         main {
             display: flex;
             padding: 20px;
@@ -100,16 +98,14 @@
             font-family: var(--font-family-paragraph);
             font-weight: bold;
         }
-
+        
         .products-container {
             width: 80%;
             max-width: 1500px;
             margin: 0 auto;
-            padding-right: 30px; /* 右側增加10px內部空間 */
-            margin-left: -10px; /* 向左移動10px */
+            padding-right: 30px;
+            margin-left: -10px;
         }
-
-
         .products {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -118,7 +114,7 @@
         }
         .product-item {
             background-color: #fff;
-            padding: 10px; /* 減少 padding 值，降低高度 */
+            padding: 10px;
             border: 1px solid #ddd;
             border-radius: 10px;
             text-align: center;
@@ -126,15 +122,14 @@
             overflow: hidden;
             font-size: 12px;
         }
-        
         .product-item h2 {
-            font-size: 16px; /* 可以調整字體大小 */
-            max-width: 100%; /* 限制標題的最大寬度 */
-            word-break: break-word; /* 確保長單詞換行 */
-            overflow-wrap: break-word; /* 確保長單詞在邊界內換行 */
-            margin: 0; /* 去掉標題外邊距 */
-            text-align: center; /* 讓文字置中對齊 */
-        }     
+            font-size: 16px;
+            max-width: 100%;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            margin: 0;
+            text-align: center;
+        }
         /* 產品輪播圖 */
         .product-carousel {
             position: relative;
@@ -144,22 +139,19 @@
             margin-bottom: 10px;
             overflow: hidden;
         }
-        
         .carousel-images {
             display: flex;
             transition: transform 0.5s ease-in-out;
             width: 100%;
             height: 100%;
         }
-        
         .carousel-images img {
             width: 100%;
             height: 100%;
-            object-fit: fill; /* 讓圖片填滿容器 */
+            object-fit: fill;
             flex-shrink: 0;
             transition: opacity 0.3s ease;
         }
-        
         .carousel-buttons {
             position: absolute;
             top: 50%;
@@ -167,9 +159,8 @@
             display: flex;
             justify-content: space-between;
             transform: translateY(-50%);
-            z-index: 15; /* 確保在圖片和「售完」標籤上方 */
+            z-index: 15;
         }
-        
         .carousel-buttons button {
             background-color: rgba(0, 0, 0, 0.5);
             border: none;
@@ -177,8 +168,7 @@
             padding: 10px;
             cursor: pointer;
         }
-
-
+        
         .cart table {
             width: 100%;
             max-width: 800px;
@@ -264,19 +254,16 @@
             color: #9b9b9b;
             font-size: 10px;
         }
+        
         .row img.out-of-stock {
-          opacity: 0.5; /* 當商品售完時，圖片顯示為半透明 */
+            opacity: 0.5;
         }
-        
-        
-        /* 產品圖片樣式 */
         .row img {
-          max-width: 100px; /* 控制圖片的最大寬度 */
-          max-height: 100px; /* 控制圖片的最大高度 */
-          object-fit: contain; /* 讓圖片完整顯示且不被裁切 */
-          transition: opacity 0.3s; /* 圖片淡化效果過渡 */
+            max-width: 100px;
+            max-height: 100px;
+            object-fit: contain;
+            transition: opacity 0.3s;
         }
-
         .out-of-stock-label {
             position: absolute;
             top: 50%;
@@ -291,22 +278,20 @@
         .search-form {
             position: absolute;
             top: 0;
-            right: 100%; /* 初始位置在圖標左側外面 */
-            display: flex; /* 使用 flex 來排版 */
+            right: 100%;
+            display: flex;
             align-items: center;
-            transform: translateX(-10px); /* 初始位置稍微向左偏移 */
-            transition: transform 0.8s ease, opacity 0.8s ease; /* 設定過渡時間 */
+            transform: translateX(-10px);
+            transition: transform 0.8s ease, opacity 0.8s ease;
             opacity: 0;
-            z-index: 10; /* 確保搜尋欄位在其他元素之上 */
+            z-index: 10;
         }
-        
         .search-form input[type="text"] {
             padding: 5px;
             border: 1px solid #ccc;
             border-radius: 4px;
             margin-right: 5px;
         }
-        
         .search-form button {
             background-color: #007bff;
             color: white;
@@ -315,30 +300,25 @@
             border-radius: 4px;
             cursor: pointer;
         }
-        
         .search-form button:hover {
             background-color: #0056b3;
         }
-        
-        /* 當滑鼠移到搜尋圖標或搜尋欄位時，觸發搜尋欄位和按鈕滑出動畫 */
         .icons:hover .search-form,
         .search-form.active {
-            transform: translateX(0); /* 搜尋欄位從左側滑出 */
-            opacity: 1; /* 確保搜尋欄位可見 */
+            transform: translateX(0);
+            opacity: 1;
+        }
+        .search-form.hidden {
+            transform: translateX(-100%);
+            opacity: 0;
+            display: none;
         }
         
-        /* 當搜尋欄位失去焦點時，滑回效果 */
-        .search-form.hidden {
-            transform: translateX(-100%); /* 從圖標左側滑回去 */
-            opacity: 0;
-            display: none; /* 確保搜尋欄位在動畫結束後不顯示 */
-        }
-
         .user-popup {
             display: none;
             position: absolute;
-            top: 60px; /* 調整位置 */
-            right: 20px; /* 調整位置 */
+            top: 60px;
+            right: 20px;
             width: 150px;
             background-color: #e1e9f4;
             border: 1px solid #ccc;
@@ -352,7 +332,6 @@
             text-decoration: none;
             padding: 5px 5px;
             text-align: center;
-
         }
         .user-popup a:hover {
             background-color: #E8EAE6;
@@ -376,7 +355,7 @@
             position: relative;
             display: inline-block;
         }
-
+        
         .cart-badge {
             position: absolute;
             top: -10px;
@@ -392,7 +371,6 @@
             font-weight: bold;
             display: none;
         }
-
     </style>
 </head>
 <body>
