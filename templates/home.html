@@ -27,24 +27,60 @@
             margin-right: 20px;
         }
         
-        /* 預設隱藏按鈕 (電腦版不顯示) */
-        .openbtn {
-            display: none;
+        .sidenav {
+            height: 100%; /* 讓側邊欄占滿螢幕高度 */
+            width: 0; /* 初始寬度為 0，不顯示 */
+            position: fixed; /* 固定在螢幕左邊 */
+            top: 0;
+            left: 0;
+            background-color: #333; /* 側邊欄背景色 */
+            overflow-x: hidden; /* 隱藏水平滾動條 */
+            transition: 0.5s; /* 添加過渡效果 */
+            padding-top: 60px; /* 距離頂部 60px */
         }
         
-        /* 手機版 (小於768px) */
+        .sidenav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: block; /* 垂直排列 */
+            text-align: left; /* 導覽列靠左對齊 */
+        }
+        
+        .sidenav ul li {
+            margin-bottom: 20px; /* 增加每個項目之間的間距 */
+        }
+        
+        .sidenav ul li a {
+            padding: 10px 15px;
+            text-decoration: none;
+            color: white;
+            display: block;
+            font-size: 18px;
+        }
+        
+        .sidenav ul li a:hover {
+            background-color: #575757; /* 滑過時改變背景色 */
+        }
+        
+        /* 預設隱藏按鈕（桌面版不顯示） */
+        .openbtn {
+            display: none; /* 預設隱藏 */
+        }
+        
+        /* 手機版時顯示按鈕 (小於768px) */
         @media (max-width: 768px) {
-            /* 顯示手機版按鈕 */
             .openbtn {
-                display: block;
+                display: block; /* 手機版顯示 */
                 font-size: 24px;
                 cursor: pointer;
                 background-color: #333;
                 color: white;
                 border: none;
                 padding: 10px;
+                margin-left: 10px;
             }
-        
+    
             /* 手機版導覽列改為垂直排列 */
             nav ul {
                 display: block; /* 垂直排列 */
@@ -454,7 +490,7 @@
             
             <button class="openbtn" onclick="toggleMenu()">☰</button>
 
-            <nav id="mobileMenu" style="display: none;">
+            <nav id="mobileMenu" class="sidenav">
                 <ul>
                     <li><a href="{{ url_for('home') }}">所有商品</a></li>
                     <li><a href="{{ url_for('group') }}">團購專區</a></li>
@@ -680,14 +716,13 @@
         
         function toggleMenu() {
             var menu = document.getElementById("mobileMenu");
-            if (menu.style.display === "block") {
-                menu.style.display = "none";
+            if (menu.style.width === "250px") {
+                menu.style.width = "0";  // 收起側邊欄
             } else {
-                menu.style.display = "block";
+                menu.style.width = "250px";  // 展開側邊欄
             }
         }
 
-    
         // 登出功能
         function logout() {
             window.location.href = '/logout';
