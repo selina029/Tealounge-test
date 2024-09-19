@@ -26,6 +26,38 @@
             height: 70px;
             margin-right: 20px;
         }
+        
+        /* 預設隱藏按鈕 (電腦版不顯示) */
+        .openbtn {
+            display: none;
+        }
+        
+        /* 手機版 (小於768px) */
+        @media (max-width: 768px) {
+            /* 顯示手機版按鈕 */
+            .openbtn {
+                display: block;
+                font-size: 24px;
+                cursor: pointer;
+                background-color: #333;
+                color: white;
+                border: none;
+                padding: 10px;
+            }
+        
+            /* 手機版導覽列改為垂直排列 */
+            nav ul {
+                display: block; /* 垂直排列 */
+                text-align: center;
+            }
+            
+            nav ul li {
+                margin-bottom: 10px; /* 增加每個項目之間的間距 */
+                margin-right: 0; /* 移除右邊間距 */
+            }
+        }
+
+   
         nav ul {
             list-style: none;
             padding: 0;
@@ -347,10 +379,16 @@
             position: absolute;
             top: -10px;
             right: -10px;
-            background-color: #ff0000;
-            color: #fff;
-            padding: 5px 10px;
+            background-color: #ff0000; /* 設置徽章背景顏色 */
+            color: #fff; /* 設置徽章文字顏色 */
             border-radius: 50%;
+            width: 20px; /* 設置徽章的寬度 */
+            height: 20px; /* 設置徽章的高度 */
+            text-align: center;
+            line-height: 20px; /* 垂直居中文字 */
+            font-size: 12px; /* 設置徽章中文字的大小 */
+            font-weight: bold;
+            display: none;
         }
         .menu-icon {
             display: none;
@@ -413,6 +451,18 @@
             <div class="logo-section">
                 <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='images/logo_home.png') }}" alt="Tea Lounge Logo" class="logo"></a>
             </div>
+            
+            <button class="openbtn" onclick="toggleMenu()">☰</button>
+
+            <nav id="mobileMenu" style="display: none;">
+                <ul>
+                    <li><a href="{{ url_for('home') }}">所有商品</a></li>
+                    <li><a href="{{ url_for('group') }}">團購專區</a></li>
+                    <li><a href="{{ url_for('about') }}">關於我們</a></li>
+                    <li><a href="{{ url_for('contact') }}">聯絡我們</a></li>
+                </ul>
+            </nav>
+
              <nav>
                  <ul class="nav-links">
                     <li><a href="{{ url_for('home') }}">所有商品</a></li>
@@ -627,6 +677,16 @@
         if (userIconLink) {
             userIconLink.addEventListener('click', toggleUserPopup);
         }
+        
+        function toggleMenu() {
+            var menu = document.getElementById("mobileMenu");
+            if (menu.style.display === "block") {
+                menu.style.display = "none";
+            } else {
+                menu.style.display = "block";
+            }
+        }
+
     
         // 登出功能
         function logout() {
