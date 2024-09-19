@@ -103,9 +103,10 @@
             width: 80%;
             max-width: 1500px;
             margin: 0 auto;
-            padding-right: 30px;
-            margin-left: -10px;
+            padding-right: 30px; /* 右側增加10px內部空間 */
+            margin-left: -10px; /* 向左移動10px */
         }
+        
         .products {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -130,6 +131,7 @@
             margin: 0;
             text-align: center;
         }
+        
         /* 產品輪播圖 */
         .product-carousel {
             position: relative;
@@ -237,24 +239,12 @@
             width: 24px;
             height: 24px;
         }
-        footer h3 {
-            margin: 10px 0 0;
-            color: #6d6d6d;
-            font-size: 13px;
-            text-align: left;
-        }
-        footer h4 {
-            margin: 10px 0 0;
-            color: #838383;
-            font-size: 12px;
-            text-align: left;
-        }
-        footer p {
-            margin: 10px 0 0;
+        footer h3, footer h4, footer p {
             color: #9b9b9b;
-            font-size: 10px;
+            margin: 10px 0 0;
+            text-align: left;
+            font-size: 12px;
         }
-        
         .row img.out-of-stock {
             opacity: 0.5;
         }
@@ -303,8 +293,7 @@
         .search-form button:hover {
             background-color: #0056b3;
         }
-        .icons:hover .search-form,
-        .search-form.active {
+        .icons:hover .search-form, .search-form.active {
             transform: translateX(0);
             opacity: 1;
         }
@@ -313,7 +302,6 @@
             opacity: 0;
             display: none;
         }
-        
         .user-popup {
             display: none;
             position: absolute;
@@ -355,22 +343,68 @@
             position: relative;
             display: inline-block;
         }
-        
         .cart-badge {
             position: absolute;
             top: -10px;
             right: -10px;
-            background-color: #ff0000; /* 設置徽章背景顏色 */
-            color: #fff; /* 設置徽章文字顏色 */
+            background-color: #ff0000;
+            color: #fff;
+            padding: 5px 10px;
             border-radius: 50%;
-            width: 20px; /* 設置徽章的寬度 */
-            height: 20px; /* 設置徽章的高度 */
-            text-align: center;
-            line-height: 20px; /* 垂直居中文字 */
-            font-size: 12px; /* 設置徽章中文字的大小 */
-            font-weight: bold;
-            display: none;
         }
+        .menu-icon {
+            display: none;
+            cursor: pointer;
+        }
+        
+        /* Media Queries */
+        @media screen and (max-width: 1024px) {
+            .products {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media screen and (max-width: 768px) {
+            .products {
+                grid-template-columns: 1fr;
+            }
+        
+            .products-container {
+                padding-right: 10px; /* 調整右側空間 */
+            }
+        
+            nav ul {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        
+            nav ul li {
+                margin: 10px 0;
+            }
+        
+            .menu-icon {
+                display: block;
+            }
+        
+            .header-container {
+                flex-direction: column;
+            }
+        
+            .icons {
+                justify-content: space-between;
+                width: 100%;
+            }
+        
+            .search-form {
+                top: auto;
+                right: 0;
+                transform: none;
+                transition: none;
+                opacity: 1;
+            }
+        }
+
+
     </style>
 </head>
 <body>
