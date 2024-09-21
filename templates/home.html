@@ -27,9 +27,9 @@
             margin-right: 20px;
         }
         
-        /* 預設隱藏按鈕（桌面版不顯示） */
+        /* 預設隱藏按鈕與側邊欄（電腦版不顯示） */
         .openbtn {
-            display: none; /* 預設隱藏 */
+            display: none; /* 電腦版隱藏 */
         }
         
         #mobileMenu {
@@ -37,12 +37,12 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 250px;
+            width: 100%; /* 覆蓋整個頁面 */
             height: 100%;
-            background-color: #333;
-            padding-top: 60px;
-            transition: 0.3s;
+            background-color: rgba(0, 0, 0, 0.8); /* 黑色背景並有透明度 */
             z-index: 1;
+            padding-top: 60px;
+            text-align: center;
         }
         
         #mobileMenu ul {
@@ -52,21 +52,20 @@
         }
         
         #mobileMenu ul li {
-            padding: 8px 16px;
+            margin: 20px 0;
         }
         
         #mobileMenu ul li a {
             color: white;
             text-decoration: none;
-            display: block;
-            font-size: 18px;
+            font-size: 24px; /* 調大字體以便觸控 */
         }
         
         #mobileMenu ul li a:hover {
             background-color: #575757;
         }
         
-        /* 手機版時顯示按鈕與側邊欄 */
+        /* 手機版時顯示按鈕 */
         @media (max-width: 768px) {
             .openbtn {
                 display: block; /* 手機版顯示 */
@@ -77,8 +76,13 @@
                 border: none;
                 padding: 10px;
                 margin-left: 10px;
+                position: fixed;
+                top: 10px;
+                left: 10px;
+                z-index: 2; /* 使按鈕位於最上層 */
             }
         }
+
 
    
         nav ul {
@@ -709,6 +713,7 @@
                 menu.style.display = "none";
             }
         }
+
 
 
         // 登出功能
