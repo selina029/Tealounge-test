@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import os
 import secrets
+import requests
 from flask import Flask, request, render_template, redirect, url_for, session, jsonify, flash, abort
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -8,7 +9,7 @@ from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_mail import Mail, Message
-from sqlalchemy import text, Boolean
+from sqlalchemy import text, Boolean, func
 from sqlalchemy.exc import IntegrityError
 from wtforms import StringField, PasswordField, SubmitField, DateField, FloatField, IntegerField, DecimalField, BooleanField
 from wtforms.validators import DataRequired, InputRequired, Email, Length, EqualTo
@@ -16,6 +17,17 @@ from flask_wtf import FlaskForm
 from itertools import groupby
 from model import db, Manager, Product, ProductImage, Register, Orders, OrderDetails, CartItem
 from decimal import Decimal
+from flask import Flask, request
+from linebot import LineBotApi, WebhookHandler
+from linebot.exceptions import InvalidSignatureError
+from linebot.models import MessageEvent, TextMessage, TextSendMessage, QuickReply, QuickReplyButton, MessageAction
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from flask import session as flask_session
+from linebot import LineBotApi, WebhookParser
+from linebot.exceptions import InvalidSignatureError, LineBotApiError
+from werkzeug.exceptions import BadRequest, Forbidden
+from sqlalchemy.exc import SQLAlchemyError
 
 # 訂單狀態代碼
 ORDER_STATUS_PENDING = 1  # 待確定
@@ -46,7 +58,7 @@ load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__, static_url_path='/static')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://admin:CQ3CvCTEkRzvYyTSQgZoW5gmkkr4yyqP@dpg-cr2po3ij1k6c73ebmgbg-a.singapore-postgres.render.com:5432/tea_lounge'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://admin:3Qr01lSaRd3NQSBjnkT0bk6CzuXkE2tO@dpg-crmn1oi3esus73807ej0-a.singapore-postgres.render.com/tealounge'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['SECRET_KEY'] = secrets.token_hex(16)
@@ -58,12 +70,25 @@ app.config['MAIL_USERNAME'] = 'tealoungebarnew@gmail.com'  # 你的 Gmail 帳號
 app.config['MAIL_PASSWORD'] = 'exmi itpa uoeq kcut'  # 你的 Gmail 密碼
 app.config['MAIL_DEFAULT_SENDER'] = 'noreply@gmail.com'  # 默認的發件人地址
 
+# LINE OAuth2 設定
+LINE_CHANNEL_ID = 'YOUR_CHANNEL_ID'
+LINE_CHANNEL_SECRET = 'YOUR_CHANNEL_SECRET'
+LINE_REDIRECT_URI = 'http://localhost:5000/line_callback'  # 回調網址
+
 # Initialize extensions
 db.init_app(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 mail = Mail(app)
+
+
+line_bot_api = LineBotApi('jvxNnM9cy8b5d+75899gotr3WLw7Oj7bxoZcdsvWlVfWnbkDIut+k/2KsBxMMMRVSWvEJGAAkhCQ7gp0sEz68XJMM9G3ScS9AXPFPJ2tPCQm0XaxikIyYgYBlpxE9JHhMNMKdMONhqpPx25+jIgsmwdB04t89/1O/w1cDnyilFU=')  
+handler = WebhookHandler('84026465efe6b5f6cbe1c122934dc3f9')
+parser = WebhookParser('84026465efe6b5f6cbe1c122934dc3f9')  # 初始化 parser
+
+engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
+Session = sessionmaker(bind=engine)
 
 # Ensure model import is done after app is initialized
 from model import db, Manager, Product, ProductImage, Register, Orders, OrderDetails, CartItem
@@ -891,11 +916,61 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
-# LINE 登入路由，目前僅重定向到儀表板
+# LINE 登入路由
 @app.route('/line_login', methods=['GET'])
 def line_login():
-    # 在此添加 LINE 登入邏輯
-    return redirect(url_for('home.html'))
+    line_login_url = (
+        'https://access.line.me/oauth2/v2.1/authorize?'
+        'response_type=code&'
+        f'client_id={LINE_CHANNEL_ID}&'
+        f'redirect_uri={LINE_REDIRECT_URI}&'
+        'state=random_string&'
+        'scope=profile%20openid%20email'
+    )
+    return redirect(line_login_url)
+
+# LINE 回調路由
+@app.route('/line_callback')
+def line_callback():
+    code = request.args.get('code')
+    token_url = 'https://api.line.me/oauth2/v2.1/token'
+    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+    data = {
+        'grant_type': 'authorization_code',
+        'code': code,
+        'redirect_uri': LINE_REDIRECT_URI,
+        'client_id': LINE_CHANNEL_ID,
+        'client_secret': LINE_CHANNEL_SECRET
+    }
+
+    token_response = requests.post(token_url, headers=headers, data=data)
+    token_json = token_response.json()
+    access_token = token_json.get('access_token')
+
+    if not access_token:
+        flash("LINE 登入失敗", "danger")
+        return redirect(url_for('login'))
+
+    profile_url = 'https://api.line.me/v2/profile'
+    profile_headers = {'Authorization': f'Bearer {access_token}'}
+    profile_response = requests.get(profile_url, headers=profile_headers)
+    profile_json = profile_response.json()
+
+    user_id = profile_json.get('userId')
+    display_name = profile_json.get('displayName')
+    picture_url = profile_json.get('pictureUrl')
+
+    member = Register.query.filter_by(LineID=user_id).first()
+    if not member:
+        member = Register(name=display_name, email=None, password=None, phone=None, LineID=user_id)
+        db.session.add(member)
+        db.session.commit()
+
+    user = User(id=member.MemberID, name=member.Name, phone=member.Phone, email=member.Email)
+    login_user(user)
+    session['member_id'] = member.MemberID
+    flash("LINE 登入成功", "success")
+    return redirect(url_for('home'))
 
 @app.route('/cart')
 @login_required
@@ -1494,6 +1569,59 @@ def get_product_images():
     
     # 返回 JSON 響應
     return jsonify(image_paths)
-   
+ 
+@app.route("/callback", methods=['POST'])
+def callback():
+    if request.method == 'POST':
+        signature = request.headers['X-Line-Signature']
+        body = request.get_data(as_text=True)
+
+        try:
+            events = parser.parse(body, signature)  # 解析傳入的事件
+        except InvalidSignatureError:
+            return '403 Forbidden', 403
+        except LineBotApiError:
+            return '400 Bad Request', 400
+
+        for event in events:
+            if isinstance(event, MessageEvent):  # 如果是訊息事件
+                user_message = event.message.text.strip()  # 用戶輸入的訊息
+
+                # 如果用戶輸入 "@查詢訂單"
+                if user_message == '@我想查詢訂單狀態':
+                    line_bot_api.reply_message(
+                        event.reply_token,
+                        TextSendMessage(text="請輸入訂單號碼來查詢訂單狀態。")
+                    )
+                # 如果用戶輸入數字（訂單號碼）
+                elif user_message.isdigit():
+                    order_id = int(user_message)  # 將輸入轉為整數訂單號
+                    order = Orders.query.filter_by(OrderID=order_id).first()
+
+                    if order:
+                        order_status_text = Orders.get_status_text('OrderStatusID', order.OrderStatusID)
+                        payment_status_text = Orders.get_status_text('PaymentStatusID', order.PaymentStatusID)
+                        delivery_status_text = Orders.get_status_text('DeliveryStatusID', order.DeliveryStatusID)
+
+                        reply_text = (f"訂單號碼: {order.OrderID}\n"
+                                      f"訂單狀態: {order_status_text}\n"
+                                      f"付款狀態: {payment_status_text}\n"
+                                      f"運送狀態: {delivery_status_text}\n"
+                                      f"總價: {order.TotalPrice}")
+                    else:
+                        reply_text = "找不到該訂單號碼。"
+
+                    line_bot_api.reply_message(
+                        event.reply_token,
+                        TextSendMessage(text=reply_text)
+                    )
+                else:
+                    line_bot_api.reply_message(
+                        event.reply_token,
+                        TextSendMessage(text="請輸入有效的訂單號碼。")
+                    )
+        return 'OK'
+
+
 if __name__ == '__main__':
     app.run()
