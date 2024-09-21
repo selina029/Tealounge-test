@@ -32,50 +32,67 @@
             display: none;
         }
         
-        #mobileMenu {
-            display: none; /* Hidden by default */
-            position: fixed;
-            top: 0;
-            left: -100%; /* Off-screen */
-            width: 75%; /* Width of the sidebar */
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.9); /* Dark background */
-            z-index: 1;
-            transition: 0.3s;
+        /* 手機版的樣式 */
+        @media (max-width: 768px) {
+            .openbtn {
+                display: block;
+                font-size: 24px;
+                cursor: pointer;
+                background-color: #333;
+                color: white;
+                border: none;
+                padding: 10px;
+                margin-left: 10px;
+                position: fixed;
+                top: 10px;
+                left: 10px;
+                z-index: 2;
+            }
+        
+            #mobileMenu {
+                display: none; /* 初始化隱藏 */
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 250px;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.9); /* 黑色半透明背景 */
+                z-index: 1;
+                padding-top: 60px;
+            }
+        
+            #mobileMenu ul {
+                list-style-type: none;
+                padding: 0;
+            }
+        
+            #mobileMenu ul li {
+                padding: 8px 16px;
+                text-align: left;
+            }
+        
+            #mobileMenu ul li a {
+                text-decoration: none;
+                font-size: 18px;
+                color: white;
+                display: block;
+            }
+        
+            #mobileMenu ul li a:hover {
+                background-color: #575757;
+            }
+        
+            #desktopMenu {
+                display: none; /* 隱藏桌面版導航 */
+            }
         }
         
-        #mobileMenu ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            text-align: left;
-            padding-top: 50px;
-        }
-        
-        #mobileMenu ul li {
-            margin: 20px 0;
-        }
-        
-        #mobileMenu ul li a {
-            color: white;
-            text-decoration: none;
-            font-size: 18px;
-        }
-        
-        #desktopMenu {
-            display: none; /* Hide the desktop menu in mobile */
-        }
-        
-        /* Display flex for desktop nav */
+        /* 桌面版樣式 */
         @media (min-width: 769px) {
             .openbtn {
-                display: none; /* Hide button in desktop */
+                display: none; /* 桌面版隱藏按鈕 */
             }
-            
-            #mobileMenu {
-                display: none; /* Hide mobile menu */
-            }
-            
+        
             #desktopMenu {
                 display: block;
             }
@@ -95,32 +112,6 @@
                 text-decoration: none;
                 color: #333;
                 font-size: 18px;
-            }
-        }
-        
-        /* Show mobile button and hide desktop menu on mobile */
-        @media (max-width: 768px) {
-            .openbtn {
-                display: block;
-                font-size: 24px;
-                cursor: pointer;
-                background-color: #333;
-                color: white;
-                border: none;
-                padding: 10px;
-                margin-left: 10px;
-                position: fixed;
-                top: 10px;
-                left: 10px;
-                z-index: 2;
-            }
-        
-            #mobileMenu {
-                display: none; /* Initially hidden */
-            }
-        
-            #desktopMenu {
-                display: none; /* Hide desktop menu */
             }
         }
 
@@ -734,12 +725,13 @@
         
         function toggleMenu() {
             var menu = document.getElementById("mobileMenu");
-            if (menu.style.left === "0px") {
-                menu.style.left = "-100%"; // Hide sidebar
+            if (menu.style.display === "block") {
+                menu.style.display = "none"; // 隱藏側邊欄
             } else {
-                menu.style.left = "0px"; // Show sidebar
+                menu.style.display = "block"; // 顯示側邊欄
             }
         }
+
 
 
 
