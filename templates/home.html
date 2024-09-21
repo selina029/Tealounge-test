@@ -27,28 +27,29 @@
             margin-right: 20px;
         }
         
-        /* 預設隱藏按鈕與側邊欄（電腦版不顯示） */
+        /* Hide button in desktop */
         .openbtn {
-            display: none; /* 電腦版隱藏 */
+            display: none;
         }
         
         #mobileMenu {
-            display: none; /* 預設隱藏側邊欄 */
+            display: none; /* Hidden by default */
             position: fixed;
             top: 0;
-            left: 0;
-            width: 100%; /* 覆蓋整個頁面 */
+            left: -100%; /* Off-screen */
+            width: 75%; /* Width of the sidebar */
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.8); /* 黑色背景並有透明度 */
+            background-color: rgba(0, 0, 0, 0.9); /* Dark background */
             z-index: 1;
-            padding-top: 60px;
-            text-align: center;
+            transition: 0.3s;
         }
         
         #mobileMenu ul {
             list-style: none;
             padding: 0;
             margin: 0;
+            text-align: left;
+            padding-top: 50px;
         }
         
         #mobileMenu ul li {
@@ -58,17 +59,49 @@
         #mobileMenu ul li a {
             color: white;
             text-decoration: none;
-            font-size: 24px; /* 調大字體以便觸控 */
+            font-size: 18px;
         }
         
-        #mobileMenu ul li a:hover {
-            background-color: #575757;
+        #desktopMenu {
+            display: none; /* Hide the desktop menu in mobile */
         }
         
-        /* 手機版時顯示按鈕 */
+        /* Display flex for desktop nav */
+        @media (min-width: 769px) {
+            .openbtn {
+                display: none; /* Hide button in desktop */
+            }
+            
+            #mobileMenu {
+                display: none; /* Hide mobile menu */
+            }
+            
+            #desktopMenu {
+                display: block;
+            }
+        
+            #desktopMenu ul {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+                display: flex;
+            }
+        
+            #desktopMenu ul li {
+                margin-right: 20px;
+            }
+        
+            #desktopMenu ul li a {
+                text-decoration: none;
+                color: #333;
+                font-size: 18px;
+            }
+        }
+        
+        /* Show mobile button and hide desktop menu on mobile */
         @media (max-width: 768px) {
             .openbtn {
-                display: block; /* 手機版顯示 */
+                display: block;
                 font-size: 24px;
                 cursor: pointer;
                 background-color: #333;
@@ -79,26 +112,18 @@
                 position: fixed;
                 top: 10px;
                 left: 10px;
-                z-index: 2; /* 使按鈕位於最上層 */
+                z-index: 2;
+            }
+        
+            #mobileMenu {
+                display: none; /* Initially hidden */
+            }
+        
+            #desktopMenu {
+                display: none; /* Hide desktop menu */
             }
         }
 
-
-   
-        nav ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
-        }
-        nav ul li {
-            margin-right: 20px;
-        }
-        nav ul li a {
-            text-decoration: none;
-            color: #333;
-            font-size: 18px;
-        }
         .icons {
             position: relative;
             display: flex;
@@ -489,15 +514,17 @@
                     <li><a href="{{ url_for('contact') }}">聯絡我們</a></li>
                 </ul>
             </nav>
-
-             <nav>
-                 <ul class="nav-links">
+            
+            <!-- Desktop navigation -->
+            <nav id="desktopMenu">
+                <ul>
                     <li><a href="{{ url_for('home') }}">所有商品</a></li>
                     <li><a href="{{ url_for('group') }}">團購專區</a></li>
                     <li><a href="{{ url_for('about') }}">關於我們</a></li>
                     <li><a href="{{ url_for('contact') }}">聯絡我們</a></li>
-                 </ul>
-             </nav>
+                </ul>
+            </nav>
+            
             <div class="icons">
                 <!-- Search Icon inside an anchor tag -->
                 <a href="#" class="search-icon">
@@ -707,10 +734,10 @@
         
         function toggleMenu() {
             var menu = document.getElementById("mobileMenu");
-            if (menu.style.display === "none" || menu.style.display === "") {
-                menu.style.display = "block";
+            if (menu.style.left === "0px") {
+                menu.style.left = "-100%"; // Hide sidebar
             } else {
-                menu.style.display = "none";
+                menu.style.left = "0px"; // Show sidebar
             }
         }
 
