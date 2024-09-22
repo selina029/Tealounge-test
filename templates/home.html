@@ -204,6 +204,7 @@
             gap: 20px;
             width: 100%;
         }
+        
         .product-item {
             background-color: #fff;
             padding: 10px;
@@ -214,6 +215,7 @@
             overflow: hidden;
             font-size: 12px;
         }
+        
         .product-item h2 {
             font-size: 16px;
             max-width: 100%;
@@ -221,6 +223,25 @@
             overflow-wrap: break-word;
             margin: 0;
             text-align: center;
+        }
+        
+        /* 手機版佈局 (螢幕寬度小於等於 768px 時) */
+        @media screen and (max-width: 768px) {
+            .products-container {
+                padding-right: 0; /* 手機版不需要額外的右側內邊距 */
+                margin-left: 0; /* 手機版不需要左移 */
+                width: 100%; /* 手機版全寬顯示 */
+            }
+        
+            .products {
+                grid-template-columns: repeat(1, 1fr); /* 手機版每行顯示一個產品 */
+                gap: 10px; /* 手機版縮小間距 */
+            }
+        
+            .product-item {
+                padding: 20px; /* 手機版增加內邊距以適應小屏幕 */
+                font-size: 14px; /* 手機版文字稍微加大 */
+            }
         }
         
         /* 產品輪播圖 */
