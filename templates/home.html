@@ -132,10 +132,13 @@
             display: flex;
             padding: 20px;
         }
+        /* 電腦版顯示 */
         aside {
             margin-right: 20px;
             width: 200px;
+            display: block; /* 確保電腦版顯示 */
         }
+        
         aside h2 {
             font-size: 18px;
             color: #6676a2;
@@ -143,6 +146,7 @@
             text-align: center;
             margin: 20px 0;
         }
+        
         aside h2::before,
         aside h2::after {
             content: '';
@@ -153,19 +157,24 @@
             height: 1px;
             background-color: #6676a2;
         }
+        
         aside h2::before {
             top: -10px;
         }
+        
         aside h2::after {
             bottom: -10px;
         }
+        
         .category-list {
             list-style: none;
             padding: 0;
         }
+        
         .category-list li {
             margin-bottom: 10px;
         }
+        
         .category-list li a {
             text-decoration: none;
             color: #d2958a;
@@ -174,6 +183,13 @@
             font-weight: bold;
         }
         
+        /* 手機版隱藏 (螢幕寬度小於等於 768px 時) */
+        @media screen and (max-width: 768px) {
+            aside {
+                display: none; /* 手機版隱藏 */
+            }
+        }
+
         .products-container {
             width: 80%;
             max-width: 1500px;
@@ -552,7 +568,7 @@
         </div>
     
     <main>
-        <aside>
+        <aside class="desktop-only">
             <ul class="category-list">
                 <li><a href="#">｜ 常溫-豆製品</a></li>
                 <li><a href="#">｜ 無麩菓手作cake</a></li>
