@@ -724,15 +724,13 @@
         }
         
         function toggleMenu() {
-            var menu = document.getElementById("mobileMenu");
-            if (menu.style.display === "block") {
-                menu.style.display = "none"; // 隱藏側邊欄
-            } else {
-                menu.style.display = "block"; // 顯示側邊欄
-            }
+          var menu = document.getElementById('_main_menu');
+          if (menu.classList.contains('active')) {
+            menu.classList.remove('active');
+          } else {
+            menu.classList.add('active');
+          }
         }
-
-
 
 
         // 登出功能
