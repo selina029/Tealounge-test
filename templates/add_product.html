@@ -104,31 +104,21 @@
           box-shadow: 10px 2px 8px 0 rgba(0, 0, 0, 0.06);
           margin-left: auto;
         }
+        /* 手機視圖下隱藏側邊欄預留空間 */
         @media (max-width: 1024px) {
             .openbtn {
                 display: block; /* 顯示三條線按鈕 */
             }
-        
             #_main_menu {
-                width: 50%; /* 側邊選單佔據螢幕的一半 */
-                left: -50%; /* 完全隱藏在螢幕左側 */
-                top: 0; /* 從頂部開始 */
-                height: 100vh; /* 高度與視窗高度相同 */
-                transition: left 0.3s ease;
-                display: none; /* 默認隱藏側邊欄及其背景色 */
-                background-color: transparent; /* 設置背景為透明，避免白色背景 */
+              left: -200px;
+              transition: left 0.3s;
             }
-        
+       
             #_main_menu.active {
                 left: 0; /* 顯示側邊選單 */
-                display: block; /* 顯示側邊欄 */
-                background-color: #40698b; /* 點擊按鈕後設置背景色 */
             }
-        
             #_main_content {
-                margin-left: 0; /* 移除側邊欄預留空間 */
-                padding-left: 0; /* 避免白色邊距 */
-                width: 100%; /* 全寬顯示 */
+                margin-left: 0 !important; /* 確保強制移除預留空間 */
             }
         }
 
@@ -403,22 +393,22 @@
                 <h2>新增產品</h2>
                 <form action="{{ url_for('add_product') }}" method="post" enctype="multipart/form-data" id="productForm">
                     <label for="name">名稱:</label>
-                    <input type="text" id="name" name="ProductName"><span class="error-message" id="name-error"></span><br><br>
+                    <input type="text" id="ProductName" name="ProductName"><span class="error-message" id="name-error"></span><br><br>
                     
                     <label for="quantity">數量:</label>
-                    <input type="number" id="quantity" name="Quantity"><span class="error-message" id="quantity-error"></span><br><br>
+                    <input type="number" id="Quantity" name="Quantity"><span class="error-message" id="quantity-error"></span><br><br>
                     
                     <label for="price">價格:</label>
-                    <input type="text" id="price" name="Price"><span class="error-message" id="price-error"></span><br><br>
+                    <input type="text" id="Price" name="Price"><span class="error-message" id="price-error"></span><br><br>
                 
                     <label for="ingredients">成分:</label>
-                    <textarea id="ingredients" name="Ingredients"></textarea><span class="error-message" id="ingredients-error"></span><br><br>
+                    <textarea id="Ingredients" name="Ingredients"></textarea><span class="error-message" id="ingredients-error"></span><br><br>
                 
                     <label for="origin">產地:</label>
-                    <input type="text" id="origin" name="Origin"><br><br>
+                    <input type="text" id="Origin" name="Origin"><br><br>
                 
                     <label for="notes">備註:</label>
-                    <textarea id="notes" name="Notes"></textarea><br><br>
+                    <textarea id="Notes" name="Notes"></textarea><br><br>
                 
                     <label for="images">上傳圖片:</label>
                     <input type="file" id="images" name="images" multiple><br><br>
@@ -451,14 +441,9 @@
     </div>
     <script src="https://unpkg.com/cropperjs@1.6.5/dist/cropper.min.js"></script>
     <script>
-        function toggleMenu() {
-            var menu = document.getElementById('_main_menu');
-            if (menu.classList.contains('active')) {
-                menu.classList.remove('active');
-            } else {
-                menu.classList.add('active');
-            }
-        }
+        document.querySelector('.openbtn').addEventListener('click', function() {
+            document.getElementById('_main_menu').classList.toggle('active');
+        });
         
         function showDialog(message) {
             console.log('Dialog triggered with message:', message);
@@ -468,7 +453,9 @@
         
         function closeDialog() {
             document.getElementById('customDialog').style.display = 'none';  // 隱藏對話框
+            clearFormAndPreview();  // 清除表單和預覽圖片
         }
+        
         document.querySelector('form').addEventListener('submit', function(event) {
             event.preventDefault();  // 防止表單提交的默認行為
         
@@ -492,8 +479,15 @@
                 showDialog('發生錯誤');  // 顯示發生錯誤提示
             });
         });
-
-
+        
+        function clearFormAndPreview() {
+            const form = document.querySelector('form');  // 獲取表單
+            form.reset();  // 重置表單
+        
+            const previewContainer = document.getElementById('images-preview');  // 獲取預覽容器
+            previewContainer.innerHTML = '';  // 清空預覽圖片，但保持容器可見
+        }
+        
         function closeCropperModal() {
             document.getElementById('cropperModal').style.display = 'none';
             if (cropper) {
@@ -501,52 +495,55 @@
                 cropper = null;
             }
         }
+
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.querySelector('form');
-            const nameInput = document.getElementById('name');
-            const quantityInput = document.getElementById('quantity');
-            const priceInput = document.getElementById('price');
-            const ingredientsInput = document.getElementById('ingredients');
+            const nameInput = document.getElementById('ProductName');
+            const quantityInput = document.getElementById('Quantity');
+            const priceInput = document.getElementById('Price');
+            const ingredientsInput = document.getElementById('Ingredients');
+
     
             form.addEventListener('submit', (e) => {
                 e.preventDefault(); // 防止默認表單提交行為
-    
+            
                 let valid = true;
-    
+            
                 if (!nameInput.value.trim() || nameInput.value.trim().length < 2) {
                     showDialog('產品名稱不得少於 2 個字符！');
                     nameInput.focus();
                     valid = false;
                     return; // 驗證失敗，終止後續驗證
                 }
-                // 確認數量欄位
+            
                 if (!quantityInput.value.trim() || isNaN(quantityInput.value) || quantityInput.value <= 0) {
                     showDialog('數量必須是有效的正整數！');
                     quantityInput.focus();
                     valid = false;
                 }
                 if (!valid) return; // 當名稱驗證失敗時立即停止後續驗證
-
-                // 確認價格格式
+            
                 if (priceInput.value.trim() && !/^\d+(\.\d{0,2})?$/.test(priceInput.value)) {
                     showDialog('價格格式不正確，請輸入有效的價格（例如：100 或 100.00）。');
                     priceInput.focus();
                     valid = false;
                 }
-                if (!valid) return; // 當名稱驗證失敗時立即停止後續驗證
-    
-                // 確認成分欄位
+                if (!valid) return; // 當價格驗證失敗時立即停止後續驗證
+            
                 if (!ingredientsInput.value.trim()) {
                     showDialog('成分欄位不得為空！');
                     ingredientsInput.focus();
                     valid = false;
                 }
                 if (!valid) return; // 當名稱驗證失敗時立即停止後續驗證
-    
+            
                 if (valid) {
-                    // 若表單驗證通過，進行數據提交
+                    // 禁用提交按鈕以防止重複提交
+                    const submitButton = document.querySelector('button[type="submit"]');
+                    submitButton.disabled = true;
+            
                     const formData = new FormData(form);
-    
+            
                     fetch('{{ url_for("add_product") }}', {
                         method: 'POST',
                         body: formData
@@ -563,6 +560,10 @@
                     .catch(error => {
                         console.error('Error:', error);
                         showDialog('發生錯誤');  // 顯示發生錯誤訊息
+                    })
+                    .finally(() => {
+                        // 提交完成後恢復按鈕狀態
+                        submitButton.disabled = false;
                     });
                 }
             });
@@ -584,6 +585,8 @@
                 }
             });
         });
+
+
     </script>
 </body>
 </html>
