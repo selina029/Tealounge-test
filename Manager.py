@@ -15,12 +15,12 @@ from wtforms import StringField, PasswordField, SubmitField, DateField, FloatFie
 from wtforms.validators import DataRequired, InputRequired, Email, Length, EqualTo
 from flask_wtf import FlaskForm
 from itertools import groupby
-from model import db, Manager, Product, ProductImage, Register, Orders, OrderDetails, CartItem
+from model import db, Manager, Product, ProductImage, Register, Orders, OrderDetails, CartItem, LineUser
 from decimal import Decimal
 from flask import Flask, request
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage, QuickReply, QuickReplyButton, MessageAction
+from linebot.models import MessageEvent, TextMessage, TextSendMessage, QuickReply, QuickReplyButton, MessageAction, ImageSendMessage, FlexSendMessage, BubbleContainer
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from flask import session as flask_session
@@ -91,9 +91,8 @@ engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
 Session = sessionmaker(bind=engine)
 
 # Ensure model import is done after app is initialized
-from model import db, Manager, Product, ProductImage, Register, Orders, OrderDetails, CartItem
+from model import db, Manager, Product, ProductImage, Register, Orders, OrderDetails, CartItem, LineUser
 
-    
 class User(UserMixin):
     def __init__(self, id, name=None, phone=None, email=None):
         self.id = id
@@ -313,7 +312,6 @@ def manager_login():
     
     return render_template('login.html')
 
-
 @app.route('/add_product', methods=['GET', 'POST'])
 def add_product():
     if request.method == 'POST':
@@ -342,13 +340,50 @@ def add_product():
                 return jsonify(success=False, message='產品新增或更新失敗。')
 
             # 處理產品圖片
-            handle_images(images, product_id)
+            image_url = handle_images(images, product_id)  # 假設這個函數會返回圖片的 URL
 
-            return jsonify(success=True, message='產品已新增或更新。')
+            # 發送 LINE 通知
+            send_line_notification(name, ingredients, origin, notes, image_url)
+
+            return jsonify(success=True, message='產品已新增或更新且成功推播!')
         except Exception as e:
             return jsonify(success=False, message=f'發生錯誤: {str(e)}')
 
     return render_template('add_product.html')
+
+def get_all_user_ids_from_db():
+    users = LineUser.query.all()
+    return [user.user_id for user in users]
+
+def send_line_notification(name, ingredients, origin, notes, image_url):
+    try:
+        # 推播文字訊息
+        message = (
+            f"新產品已上線！\n"
+            f"產品名稱: {name}\n"
+            f"成分: {ingredients}\n"
+            f"產地: {origin}\n"
+            f"備註: {notes}"
+        )
+        
+        # 推播訊息給所有用戶
+        user_ids = get_all_user_ids_from_db()  # 從資料庫獲取所有用戶的 user_id
+        for user_id in user_ids:
+            try:
+                # 發送文字訊息
+                line_bot_api.push_message(user_id, TextSendMessage(text=message))
+                
+                # 發送圖片訊息
+                image_message = ImageSendMessage(
+                    original_content_url=image_url,
+                    preview_image_url=image_url  # 預覽圖可以使用相同的圖片 URL
+                )
+                line_bot_api.push_message(user_id, image_message)
+            except Exception as e:
+                print(f'發送給 {user_id} 時發生錯誤: {e}')
+                continue  # 遇到錯誤時繼續發送給其他用戶
+    except Exception as e:
+        flash(f'發送 Line 推播時發生錯誤: {e}', 'error')
 
 def process_quantity(quantity):
     if quantity.strip():
@@ -402,6 +437,7 @@ def handle_images(images, product_id):
     except Exception as e:
         db.session.rollback()
         flash(f'處理圖片時發生錯誤: {e}', 'error')
+
 
 @app.route('/orders', methods=['GET', 'POST'])
 def orders():
@@ -1165,8 +1201,7 @@ def cart_status():
 @app.route('/search', methods=['GET'])
 def search():
     query = request.args.get('query', '')
-    group_page = request.args.get('group_page', 1, type=int)  # 團購頁面的頁碼
-    ended_page = request.args.get('ended_page', 1, type=int)  # 已結束頁面的頁碼
+    page_type = request.args.get('page_type', 'home')  # 取得頁面類型
     per_page = 9
 
     # 查詢條件
@@ -1175,11 +1210,18 @@ def search():
     else:
         products_query = Product.query.filter(Product.Status == True)
 
-    # 分開處理團購和已結束團購的產品查詢和分頁
+    # 如果是首頁搜尋，直接返回產品列表
+    if page_type == 'home':
+        products = products_query.filter(Product.is_available == True).paginate(page=1, per_page=per_page, error_out=False)
+        return render_template('home.html', products=products.items, pagination=products)
+
+    # 否則，處理團購和已結束團購的產品查詢和分頁
+    group_page = request.args.get('group_page', 1, type=int)  # 團購頁面的頁碼
+    ended_page = request.args.get('ended_page', 1, type=int)  # 已結束頁面的頁碼
+
     available_products_query = products_query.filter(Product.is_available == True)
     unavailable_products_query = products_query.filter(Product.is_available == False)
 
-    # 各自處理分頁邏輯，使用不同的頁碼參數
     available_pagination = available_products_query.paginate(page=group_page, per_page=per_page, error_out=False)
     unavailable_pagination = unavailable_products_query.paginate(page=ended_page, per_page=per_page, error_out=False)
 
@@ -1190,6 +1232,7 @@ def search():
                            unavailable_pagination=unavailable_pagination,
                            group_page=group_page,
                            ended_page=ended_page)
+
 
 @app.route('/product/<int:product_id>')
 def get_product(product_id):
@@ -1585,7 +1628,21 @@ def callback():
 
         for event in events:
             if isinstance(event, MessageEvent):  # 如果是訊息事件
-                user_message = event.message.text.strip()  # 用戶輸入的訊息
+                user_id = event.source.user_id  # 獲取用戶的 user_id
+                
+                # 檢查用戶是否已經存在於資料庫中
+                existing_user = LineUser.query.filter_by(user_id=user_id).first()
+                if not existing_user:
+                    try:
+                        new_user = LineUser(user_id=user_id)
+                        db.session.add(new_user)
+                        db.session.commit()
+                    except Exception as e:
+                        db.session.rollback()
+                        print(f"新增用戶時發生錯誤: {e}")
+
+                # 獲取用戶輸入的訊息
+                user_message = event.message.text.strip()
 
                 # 如果用戶輸入 "@查詢訂單"
                 if user_message == '@我想查詢訂單狀態':
@@ -1616,10 +1673,13 @@ def callback():
                         TextSendMessage(text=reply_text)
                     )
                 else:
+                    reply_text = ("無法辨識您的查詢。如果您想查詢訂單狀態，請輸入訂單號碼。"
+                                  "或者您可以輸入 '@我想查詢訂單狀態' 來查詢。")
                     line_bot_api.reply_message(
                         event.reply_token,
-                        TextSendMessage(text="請輸入有效的訂單號碼。")
+                        TextSendMessage(text=reply_text)
                     )
+
         return 'OK'
 
 
