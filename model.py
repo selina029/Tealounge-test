@@ -220,4 +220,9 @@ class CartItem(db.Model):
             'price': str(self.product.Price)  # JSON 不支持 Decimal，需轉換為字串
         }
 
+class LineUser(db.Model):
+    __tablename__ = 'line_users'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(50), unique=True, nullable=False)
+    joined_at = db.Column(db.DateTime, default=datetime.utcnow)
 
