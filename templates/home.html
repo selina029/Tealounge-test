@@ -42,25 +42,26 @@
                 color: white;
                 border: none;
                 padding: 10px;
-                margin-right: 10px; /* 調整 margin-right 而非 margin-left */
+                margin-right: 10px;
                 position: fixed;
                 top: 10px;
-                right: 10px; /* 將按鈕移到右側 */
-                z-index: 2;
+                right: 10px;
+                z-index: 1001; /* 保證按鈕位於最前方 */
             }
+
         
             #mobileMenu {
-                display: none; /* 初始化隱藏 */
                 position: fixed;
                 top: 0;
-                right: 0; /* 將菜單設置在右側 */
+                right: -250px; /* 初始隱藏 */
                 width: 250px;
                 height: 100%;
                 background-color: rgba(0, 0, 0, 0.9); /* 黑色半透明背景 */
-                z-index: 1;
                 padding-top: 60px;
+                transition: right 0.3s ease; /* 添加動畫效果 */
+                z-index: 2000; /* 確保在最上層 */
             }
-        
+
             #mobileMenu ul {
                 list-style-type: none;
                 padding: 0;
@@ -538,7 +539,7 @@
                 <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='images/logo_home.png') }}" alt="Tea Lounge Logo" class="logo"></a>
             </div>
             
-            <button class="openbtn" onclick="toggleMenu()">☰</button>
+            <button class="openbtn">☰</button>
             
             <nav id="mobileMenu" style="display: none;">
                 <ul>
@@ -735,43 +736,35 @@
             updateCarousel(); // 初始化顯示
         });
     
+        // 搜尋欄控制
         const searchIcon = document.querySelector('.search-icon');
         const searchForm = document.querySelector('.search-form');
-        
-        // 檢查是否為手機版 (視窗寬度 <= 768 為手機版)
         const isMobile = window.innerWidth <= 768;
-        
+    
         if (searchIcon && searchForm) {
             if (isMobile) {
-                // 手機版行為：點擊圖示顯示或隱藏搜尋欄
                 searchIcon.addEventListener('click', function(event) {
                     event.preventDefault();
-                    // 切換 active 狀態來顯示或隱藏
                     searchForm.classList.toggle('active');
-                    searchForm.classList.toggle('hidden');  // 確保隱藏或顯示搜尋欄
+                    searchForm.classList.toggle('hidden');  // 切換隱藏顯示
                 });
-        
-                // 手機版一開始隱藏搜尋欄
                 searchForm.classList.add('hidden');
             } else {
-                // 桌面版行為：滑鼠移入顯示搜尋欄
                 searchIcon.addEventListener('mouseenter', function() {
                     searchForm.classList.add('active');
                     searchForm.classList.remove('hidden');
                 });
-        
-                // 桌面版：滑鼠移開搜尋欄及圖示後隱藏搜尋欄
+    
                 document.addEventListener('mousemove', function(event) {
                     const iconRect = searchIcon.getBoundingClientRect();
                     const formRect = searchForm.getBoundingClientRect();
                     if (!iconRect.contains(event.clientX, event.clientY) && !formRect.contains(event.clientX, event.clientY)) {
                         searchForm.classList.remove('active');
-                        searchForm.classList.add('hidden');  // 加入這行來隱藏搜尋欄
+                        searchForm.classList.add('hidden');
                     }
                 });
             }
         }
-
     
         // 用戶彈出窗口控制
         function toggleUserPopup() {
@@ -785,26 +778,37 @@
         if (userIconLink) {
             userIconLink.addEventListener('click', toggleUserPopup);
         }
-        
-        function toggleMenu() {
-            var menu = document.getElementById('mobileMenu');
-            if (menu.style.display === 'none' || menu.style.display === '') {
-                menu.style.display = 'block';
-            } else {
-                menu.style.display = 'none';
-            }
-        }
-
-        // 登出功能
-        function logout() {
-            window.location.href = '/logout';
+    
+        // 側邊選單控制
+        const openBtn = document.querySelector('.openbtn');
+        if (openBtn) {
+            openBtn.addEventListener('click', toggleMenu);
         }
     
+        function toggleMenu() {
+            var menu = document.getElementById('mobileMenu');
+            var currentRight = window.getComputedStyle(menu).right;
+        
+            console.log('Current right:', currentRight); // 檢查目前的 right 值
+        
+            if (currentRight === '0px') {
+                menu.style.right = '-250px';  // 隱藏選單
+                console.log('Menu hidden');  // 日誌輸出
+            } else {
+                menu.style.right = '0px';  // 顯示選單
+                console.log('Menu shown');  // 日誌輸出
+            }
+        }
+    
+        // 登出功能
         const logoutButton = document.getElementById('logoutButton');
         if (logoutButton) {
-            logoutButton.addEventListener('click', logout);
+            logoutButton.addEventListener('click', function() {
+                window.location.href = '/logout';
+            });
         }
     });
+
     </script>
 </body>
 </html>
