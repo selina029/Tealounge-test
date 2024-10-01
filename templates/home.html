@@ -46,7 +46,7 @@
                 position: fixed;
                 top: 10px;
                 right: 10px;
-                z-index: 1001; /* 保證按鈕位於最前方 */
+                z-index: 2001; /* 保證按鈕位於最前方 */
             }
 
         
@@ -433,6 +433,14 @@
             padding: 10px;
             z-index: 1000;
         }
+        /* 手機版調整 */
+        @media (max-width: 768px) { /* 根據你的設計調整這個值 */
+            .user-popup {
+                top: 110px; /* 將 top 調整到一個適合的值以避免擋住圖示 */
+                right: 20px; /* 根據需求調整 */
+                width: 150px; /* 如果需要，可以保持寬度 */
+            }
+        }
         .user-popup a {
             display: block;
             color: #5E6D79;
@@ -789,16 +797,15 @@
             var menu = document.getElementById('mobileMenu');
             var currentRight = window.getComputedStyle(menu).right;
         
-            console.log('Current right:', currentRight); // 檢查目前的 right 值
-        
             if (currentRight === '0px') {
                 menu.style.right = '-250px';  // 隱藏選單
-                console.log('Menu hidden');  // 日誌輸出
+                menu.style.display = 'none';    // 確保選單不顯示
             } else {
-                menu.style.right = '0px';  // 顯示選單
-                console.log('Menu shown');  // 日誌輸出
+                menu.style.right = '0px';       // 顯示選單
+                menu.style.display = 'block';    // 確保選單顯示
             }
         }
+
     
         // 登出功能
         const logoutButton = document.getElementById('logoutButton');
