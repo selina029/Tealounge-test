@@ -27,19 +27,93 @@
             height: 70px;
             margin-right: 20px;
         }
-        nav ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
+        /* Hide button in desktop */
+        .openbtn {
+            display: none;
         }
-        nav ul li {
-            margin-right: 20px;
+        
+        /* 手機版的樣式 */
+        @media (max-width: 768px) {
+            .openbtn {
+                display: block;
+                font-size: 24px;
+                cursor: pointer;
+                background-color: #333;
+                color: white;
+                border: none;
+                padding: 10px;
+                margin-right: 10px;
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                z-index: 2001; /* 保證按鈕位於最前方 */
+            }
+
+        
+            #mobileMenu {
+                position: fixed;
+                top: 0;
+                right: -250px; /* 初始隱藏 */
+                width: 250px;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.9); /* 黑色半透明背景 */
+                padding-top: 60px;
+                transition: right 0.3s ease; /* 添加動畫效果 */
+                z-index: 2000; /* 確保在最上層 */
+            }
+
+            #mobileMenu ul {
+                list-style-type: none;
+                padding: 0;
+            }
+        
+            #mobileMenu ul li {
+                padding: 8px 16px;
+                text-align: left;
+            }
+        
+            #mobileMenu ul li a {
+                text-decoration: none;
+                font-size: 18px;
+                color: white;
+                display: block;
+            }
+        
+            #mobileMenu ul li a:hover {
+                background-color: #575757;
+            }
+        
+            #desktopMenu {
+                display: none; /* 隱藏桌面版導航 */
+            }
         }
-        nav ul li a {
-            text-decoration: none;
-            color: #333;
-            font-size: 18px;
+        
+        /* 桌面版樣式 */
+        @media (min-width: 769px) {
+            .openbtn {
+                display: none; /* 桌面版隱藏按鈕 */
+            }
+        
+            #desktopMenu {
+                display: block;
+            }
+        
+            #desktopMenu ul {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+                display: flex;
+            }
+        
+            #desktopMenu ul li {
+                margin-right: 20px;
+            }
+        
+            #desktopMenu ul li a {
+                text-decoration: none;
+                color: #333;
+                font-size: 18px;
+            }
         }
         .icons a {
             margin-left: 20px;
@@ -52,14 +126,22 @@
         .user-popup {
             display: none;
             position: absolute;
-            top: 60px; /* 調整位置 */
-            right: 20px; /* 調整位置 */
+            top: 60px;
+            right: 20px;
             width: 150px;
             background-color: #e1e9f4;
             border: 1px solid #ccc;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             padding: 10px;
             z-index: 1000;
+        }
+        /* 手機版調整 */
+        @media (max-width: 768px) { /* 根據你的設計調整這個值 */
+            .user-popup {
+                top: 110px; /* 將 top 調整到一個適合的值以避免擋住圖示 */
+                right: 20px; /* 根據需求調整 */
+                width: 150px; /* 如果需要，可以保持寬度 */
+            }
         }
         .user-popup a {
             display: block;
@@ -84,12 +166,38 @@
             cursor: pointer;
             color: #5E6D79;
         }
+
         .btn:hover {
             background-color: #E8EAE6;
         }
         .icons img {
             cursor: pointer;
         }
+        
+        /* 手機版的樣式 */
+        @media (max-width: 768px) {
+            .header-container {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0 20px;
+            }
+        
+            /* 修改圖示排列方式 */
+            .icons {
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+            }
+        
+            .icons a:first-child {
+                margin-left: 0; /* 保證左邊的圖示貼齊 */
+            }
+        
+            .icons a:last-child {
+                margin-right: 0; /* 保證右邊的圖示貼齊 */
+            }
+        
         .logout-button {
             display: block;
             width: 100px;
@@ -145,10 +253,13 @@
             text-align: center;
             color: white;
         }
+        
         .background-image img {
             width: 100%;
             height: auto;
+            max-width: 100%; /* 限制最大寬度以避免圖片過大 */
         }
+        
         .background-text {
             position: absolute;
             top: 50%;
@@ -158,7 +269,64 @@
             background: rgba(0, 0, 0, 0.5);
             padding: 20px;
             border-radius: 10px;
+            width: 80%; /* 讓文字框在小螢幕上縮小 */
+            max-width: 600px; /* 限制最大寬度，避免在大螢幕上過大 */
         }
+        
+        @media (max-width: 768px) {
+            .background-text {
+                font-size: 14px; /* 在小螢幕上縮小字體大小 */
+                padding: 15px; /* 調整內距 */
+                width: 90%; /* 在小螢幕上讓框寬度更大 */
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .background-text {
+                font-size: 12px; /* 在手機上進一步縮小字體 */
+                padding: 10px; /* 減少內距以適應更小的螢幕 */
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+                .products {
+                    grid-template-columns: 1fr;
+                }
+            
+                .products-container {
+                    padding-right: 10px; /* 調整右側空間 */
+                }
+            
+                nav ul {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+            
+                nav ul li {
+                    margin: 10px 0;
+                }
+            
+                .menu-icon {
+                    display: block;
+                }
+            
+                .header-container {
+                    flex-direction: column;
+                }
+            
+                .icons {
+                    justify-content: space-between;
+                    width: 100%;
+                }
+            
+                .search-form {
+                    top: auto;
+                    right: 0;
+                    transform: none;
+                    transition: none;
+                    opacity: 1;
+                }
+            }
     </style>
 </head>
 <body>
@@ -167,12 +335,25 @@
             <div class="logo-section">
                 <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='images/logo_home.png') }}" alt="Tea Lounge Logo" class="logo"></a>
             </div>
-             <nav>
-                 <ul class="nav-links">
-                    <li><a href="{{ url_for('home') }}">所有商品</a></li>
-                    <li><a href="{{ url_for('group') }}">團購專區</a></li>
-                    <li><a href="{{ url_for('about') }}">關於我們</a></li>
-                    <li><a href="{{ url_for('contact') }}">聯絡我們</a></li>
+             <button class="openbtn">☰</button>
+             
+             <nav id="mobileMenu" style="display: none;">
+                 <ul>
+                     <li><a href="{{ url_for('home') }}">所有商品</a></li>
+                     <li><a href="{{ url_for('group') }}">團購專區</a></li>
+                     <li><a href="{{ url_for('about') }}">關於我們</a></li>
+                     <li><a href="{{ url_for('contact') }}">聯絡我們</a></li>
+                 </ul>
+             </nav>
+
+             
+             <!-- Desktop navigation -->
+             <nav id="desktopMenu">
+                 <ul>
+                     <li><a href="{{ url_for('home') }}">所有商品</a></li>
+                     <li><a href="{{ url_for('group') }}">團購專區</a></li>
+                     <li><a href="{{ url_for('about') }}">關於我們</a></li>
+                     <li><a href="{{ url_for('contact') }}">聯絡我們</a></li>
                  </ul>
              </nav>
             <div class="icons">
@@ -226,6 +407,25 @@
        function toggleUserPopup() {
            var popup = document.getElementById('userPopup');
            popup.style.display = (popup.style.display === 'block') ? 'none' : 'block';
+       }
+       
+       // 側邊選單控制
+       const openBtn = document.querySelector('.openbtn');
+       if (openBtn) {
+           openBtn.addEventListener('click', toggleMenu);
+       }
+   
+       function toggleMenu() {
+           var menu = document.getElementById('mobileMenu');
+           var currentRight = window.getComputedStyle(menu).right;
+       
+           if (currentRight === '0px') {
+               menu.style.right = '-250px';  // 隱藏選單
+               menu.style.display = 'none';    // 確保選單不顯示
+           } else {
+               menu.style.right = '0px';       // 顯示選單
+               menu.style.display = 'block';    // 確保選單顯示
+           }
        }
        
        function logout() {
