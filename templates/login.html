@@ -43,6 +43,7 @@
       box-shadow: 2px 2px 8px 1px rgba(3, 3, 3, 0.12);
     }
     @media (max-width: 768px) {
+
       main.container #content {
         padding: 18px;
       }
@@ -109,6 +110,46 @@
         font-size: 0.9rem; 
       }
     }
+    .dialog-overlay {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-60%, -50%); /* 將水平位移調整為 -60%，向左移動 */
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+    
+    .dialog {
+        background: #f0f0f0;
+        padding: 40px; /* 增加內邊距，讓內容更寬鬆 */
+        border-radius: 10px; /* 微調圓角 */
+        max-width: 600px; /* 將提示框的最大寬度設為 600px */
+        width: 100%;
+        text-align: center;
+        box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.2); /* 加強陰影效果 */
+    }
+    
+    .dialog button {
+        padding: 10px 20px;
+        background: #596688;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    
+    .buttons button.disabled {
+        background-color: grey;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+    
+    .dialog p {
+        margin-bottom: 20px; /* 段落和按鈕之間的間距 */
+    }
+
   </style>
 </head>
 <body>
@@ -132,54 +173,75 @@
         </form>
       </div>
     </div>
+    <div id="customDialog" class="dialog-overlay" style="display:none;">
+        <div class="dialog">
+            <p id="dialogMessage"></p>
+            <button onclick="closeDialog()">關閉</button>
+        </div>
+    </div>
+
   </main>
 
     <script>
-      (function () {
-        function loginHandler() {
-          const loginForm = document.getElementById('loginForm');
-          const usernameInput = document.getElementById('username');
-          const passwordInput = document.getElementById('password');
+    function showDialog(message) {
+        const dialog = document.getElementById('customDialog');
+        const dialogMessage = document.getElementById('dialogMessage');
+        
+        dialogMessage.textContent = message;
+        dialog.style.display = 'block'; // 顯示對話框
+    }
     
-          // 監聽 Enter 鍵事件
-          document.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              loginForm.dispatchEvent(new Event('submit'));
+    function closeDialog() {
+        const dialog = document.getElementById('customDialog');
+        dialog.style.display = 'none'; // 關閉對話框
+    }
+
+    (function () {
+      function loginHandler() {
+        const loginForm = document.getElementById('loginForm');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+    
+        // 監聽 Enter 鍵事件
+        document.addEventListener('keypress', function (e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            loginForm.dispatchEvent(new Event('submit'));
+          }
+        });
+    
+        loginForm.addEventListener("submit", function (event) {
+          event.preventDefault(); // 防止表單默認提交行為
+    
+          const username = usernameInput.value;
+          const password = passwordInput.value;
+    
+          fetch('/manager_login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password }),
+          })
+          .then(response => {
+            if (response.ok) {
+              window.location.href = '/orders'; // 登入成功後跳轉到訂單頁面
+            } else {
+              return response.json().then(data => {
+                showDialog(data.message); // 使用自定義對話框顯示錯誤信息
+              });
             }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            showDialog("發生錯誤，請稍後再試。"); // 使用自定義對話框顯示錯誤信息
           });
+        });
+      }
     
-          loginForm.addEventListener("submit", function (event) {
-            event.preventDefault(); // 防止表單默認提交行為
-    
-            const username = usernameInput.value;
-            const password = passwordInput.value;
-    
-            fetch('/manager_login', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ username, password }),
-            })
-            .then(response => {
-              if (response.ok) {
-                window.location.href = '/orders'; // 登入成功後跳轉到訂單頁面
-              } else {
-                return response.json().then(data => {
-                  alert(data.message);
-                });
-              }
-            })
-            .catch(error => {
-              console.error('Error:', error);
-              alert("發生錯誤，請稍後再試。");
-            });
-          });
-        }
-    
-        loginHandler();
-      })();
+      loginHandler();
+    })();
+
     </script>
 
 </body>
