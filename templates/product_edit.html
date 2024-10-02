@@ -19,7 +19,6 @@
       font-family: "Microsoft JhengHei", sans-serif;
       font-size: 1rem;
     }
-    
     #_main_menu {
       width: 200px;
       background-color: #40698b;
@@ -56,6 +55,7 @@
     #_main_menu ul li a:hover {
       background-color: #305c7c;
     }
+
     /* 頂部選單 */
     #_top_menu {
       position: fixed;
@@ -75,7 +75,6 @@
     
     }
 
-    /* 頂部選單按鈕樣式 */
     .openbtn {
         font-size: 20px;
         cursor: pointer;
@@ -191,7 +190,7 @@
         #_main_content {
             margin-left: 0; /* 移除側邊欄預留空間 */
         }
-    }     
+    }   
     .main-content-wrapper {
       display: flex;
       justify-content: space-between;
@@ -871,14 +870,22 @@
     </div>
   </div>
     <script>
-    function toggleMenu() {
-      var menu = document.getElementById('_main_menu');
-      if (menu.classList.contains('active')) {
-        menu.classList.remove('active');
-      } else {
-        menu.classList.add('active');
-      }
-    }
+        function toggleMenu() {
+          var menu = document.getElementById('_main_menu');
+          menu.classList.toggle('active');
+        }
+        
+        // 點擊側邊欄以外區域時自動隱藏
+        document.addEventListener('click', function (event) {
+          var menu = document.getElementById('_main_menu');
+          var openBtn = document.querySelector('.openbtn');
+        
+          // 如果點擊的不是側邊欄或者三條線按鈕，隱藏側邊欄
+          if (!menu.contains(event.target) && !openBtn.contains(event.target)) {
+            menu.classList.remove('active');
+          }
+        });
+        
       function showSuccessMessage() {
         const modal = document.getElementById('successModal');
         modal.style.display = 'block';
