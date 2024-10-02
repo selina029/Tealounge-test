@@ -88,11 +88,10 @@
                     {{ form.password.label(class="form-label") }}
                     {{ form.password(class_="form-control", placeholder="請輸入您的密碼") }}
                 </div>
+                <hr>
                 <button type="submit" class="btn btn-primary">立即登入</button>
             </form>
-            <hr>
-            <!-- 使用 LINE 登入按鈕 -->
-            <button class="btn btn-line" onclick="location.href='{{ url_for('line_login') }}'">使用LINE快速登入</button>
+            
             <div class="register-link">
                 <p><a href="{{ url_for('forgot_password') }}">忘記密碼</a> | <a href="{{ url_for('register') }}">註冊新會員</a></p>
             </div>
