@@ -190,6 +190,7 @@
                         <h1 class="card-title">註冊</h1>
                         <form id="registerForm" method="POST" action="{{ url_for('register') }}">
                             {{ form.hidden_tag() }}
+                            <input type="hidden" name="user_id" value="{{ user_id }}"> <!-- 添加這一行 -->
                             <div class="form-group">
                                 <label for="name">姓名：</label>
                                 {{ form.name(class="form-control", placeholder="請輸入您的姓名") }}
@@ -232,11 +233,9 @@
                                     <div class="text-danger">{{ form.pass_confirm.errors[0] }}</div>
                                 {% endif %}
                             </div>
-                            
+                            <hr>
                             <button type="submit" id="submit" class="btn btn-primary btn-block">立即註冊</button>
                         </form>
-                        <hr>
-                        <button class="btn btn-line btn-block" onclick="location.href='{{ url_for('line_login') }}'">使用LINE快速註冊</button>
                         <div class="links">
                             <a href="/login">已有帳號 立即登入</a>
                         </div>
