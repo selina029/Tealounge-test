@@ -31,21 +31,93 @@
             margin-right: 20px;
         }
 
-        nav ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
+        /* Hide button in desktop */
+        .openbtn {
+            display: none;
         }
+        
+        /* 手機版的樣式 */
+        @media (max-width: 768px) {
+            .openbtn {
+                display: block;
+                font-size: 24px;
+                cursor: pointer;
+                background-color: #333;
+                color: white;
+                border: none;
+                padding: 10px;
+                margin-right: 10px;
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                z-index: 2001; /* 保證按鈕位於最前方 */
+            }
 
-        nav ul li {
-            margin-right: 20px;
+        
+            #mobileMenu {
+                position: fixed;
+                top: 0;
+                right: -250px; /* 初始隱藏 */
+                width: 250px;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.9); /* 黑色半透明背景 */
+                padding-top: 60px;
+                transition: right 0.3s ease; /* 添加動畫效果 */
+                z-index: 2000; /* 確保在最上層 */
+            }
+
+            #mobileMenu ul {
+                list-style-type: none;
+                padding: 0;
+            }
+        
+            #mobileMenu ul li {
+                padding: 8px 16px;
+                text-align: left;
+            }
+        
+            #mobileMenu ul li a {
+                text-decoration: none;
+                font-size: 18px;
+                color: white;
+                display: block;
+            }
+        
+            #mobileMenu ul li a:hover {
+                background-color: #575757;
+            }
+        
+            #desktopMenu {
+                display: none; /* 隱藏桌面版導航 */
+            }
         }
-
-        nav ul li a {
-            text-decoration: none;
-            color: #333;
-            font-size: 18px;
+        
+        /* 桌面版樣式 */
+        @media (min-width: 769px) {
+            .openbtn {
+                display: none; /* 桌面版隱藏按鈕 */
+            }
+        
+            #desktopMenu {
+                display: block;
+            }
+        
+            #desktopMenu ul {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+                display: flex;
+            }
+        
+            #desktopMenu ul li {
+                margin-right: 20px;
+            }
+        
+            #desktopMenu ul li a {
+                text-decoration: none;
+                color: #333;
+                font-size: 18px;
+            }
         }
         .icons {
             position: relative;
@@ -172,14 +244,22 @@
         .user-popup {
             display: none;
             position: absolute;
-            top: 60px; /* 調整位置 */
-            right: 20px; /* 調整位置 */
+            top: 60px;
+            right: 20px;
             width: 150px;
             background-color: #e1e9f4;
             border: 1px solid #ccc;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             padding: 10px;
             z-index: 1000;
+        }
+        /* 手機版調整 */
+        @media (max-width: 768px) { /* 根據你的設計調整這個值 */
+            .user-popup {
+                top: 110px; /* 將 top 調整到一個適合的值以避免擋住圖示 */
+                right: 20px; /* 根據需求調整 */
+                width: 150px; /* 如果需要，可以保持寬度 */
+            }
         }
         .user-popup a {
             display: block;
@@ -254,178 +334,200 @@
             margin: 0; /* 去掉標題外邊距 */
             text-align: center; /* 讓文字置中對齊 */
         }
-        @media (max-width: 1200px) {
+        /* 產品網格布局 */
+    .products {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr); /* 預設為每行四個 */
+        gap: 10px; /* 增加格子間距 */
+    }
+    
+    @media (max-width: 1200px) {
+        .products {
+            grid-template-columns: repeat(3, 1fr); /* 螢幕寬度小於 1200px 時，每行顯示三個 */
+        }
+    }
+    
+    @media (max-width: 800px) {
+        .products {
+            grid-template-columns: repeat(2, 1fr); /* 螢幕寬度小於 800px 時，每行顯示兩個 */
+        }
+    }
+    
+    @media (max-width: 500px) {
+        .products {
+            grid-template-columns: 1fr; /* 螢幕寬度小於 500px 時，每行顯示一個 */
+        }
+    }
+    
+    /* 商品輪播 */
+    .product-carousel {
+        position: relative;
+        width: 100%;
+        height: 200px;
+        background-color: #f0f0f0;
+        margin-bottom: 10px;
+        overflow: hidden;
+    }
+    
+    .carousel-images {
+        display: flex;
+        transition: transform 0.5s ease-in-out;
+        width: 100%;
+        height: 100%;
+    }
+    
+    .carousel-images img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* 讓圖片填滿容器 */
+        flex-shrink: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    /* 輪播按鈕 */
+    .carousel-buttons {
+        position: absolute;
+        top: 50%;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        transform: translateY(-50%);
+        z-index: 15; /* 確保在圖片上方 */
+    }
+    
+    .carousel-buttons button {
+        background-color: rgba(0, 0, 0, 0.5);
+        border: none;
+        color: #fff;
+        padding: 10px;
+        cursor: pointer;
+    }
+    
+    /* 搜尋表單 */
+    .search-form {
+        position: absolute;
+        top: 0;
+        right: 100%;
+        display: flex;
+        align-items: center;
+        transform: translateX(-10px);
+        transition: transform 0.8s ease, opacity 0.8s ease;
+        opacity: 0;
+        z-index: 10;
+    }
+    
+    .search-form input[type="text"] {
+        padding: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        margin-right: 5px;
+    }
+    
+    .search-form button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    
+    .search-form button:hover {
+        background-color: #0056b3;
+    }
+    
+    .search-form.active {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    
+    .search-form.hidden {
+        transform: translateX(-100%);
+        opacity: 0;
+        display: none;
+    }
+    
+    /* 購物車徽章 */
+    .cart-icon {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .cart-badge {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background-color: #ff0000;
+        color: #fff;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        text-align: center;
+        line-height: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        display: none; /* 在有商品時顯示 */
+    }
+    
+    /* 售完標籤 */
+    .product-carousel.sold-out img {
+        opacity: 0.5;
+    }
+    
+    .out-of-stock-label {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(0, 0, 0, 0.5); /* 半透明背景 */
+        color: #fff;
+        padding: 10px 20px;
+        font-size: 24px;
+        z-index: 10;
+        text-align: center;
+        border-radius: 5px;
+    }
+    
+    @media screen and (max-width: 768px) {
             .products {
-                grid-template-columns: repeat(3, 1fr); /* 螢幕寬度小於 1200px 時，每行顯示三個 */
+                grid-template-columns: 1fr;
+            }
+        
+            .products-container {
+                padding-right: 10px; /* 調整右側空間 */
+            }
+        
+            nav ul {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        
+            nav ul li {
+                margin: 10px 0;
+            }
+        
+            .menu-icon {
+                display: block;
+            }
+        
+            .header-container {
+                flex-direction: column;
+            }
+        
+            .icons {
+                justify-content: space-between;
+                width: 100%;
+            }
+        
+            .search-form {
+                top: auto;
+                right: 0;
+                transform: none;
+                transition: none;
+                opacity: 1;
             }
         }
-        
-        @media (max-width: 800px) {
-            .products {
-                grid-template-columns: repeat(2, 1fr); /* 螢幕寬度小於 800px 時，每行顯示兩個 */
-            }
-        }
-        
-        @media (max-width: 500px) {
-            .products {
-                grid-template-columns: 1fr; /* 螢幕寬度小於 500px 時，每行顯示一個 */
-            }
-        }
 
-        .product-carousel {
-            position: relative;
-            width: 100%;
-            height: 200px;
-            background-color: #f0f0f0;
-            margin-bottom: 10px;
-            overflow: hidden;
-        }
-        
-        .carousel-images {
-            display: flex;
-            transition: transform 0.5s ease-in-out;
-            width: 100%;
-            height: 100%;
-        }
-        
-        .carousel-images img {
-            width: 100%;
-            height: 100%;
-            object-fit: fill; /* 讓圖片填滿容器 */
-            flex-shrink: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .carousel-buttons {
-            position: absolute;
-            top: 50%;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            transform: translateY(-50%);
-            z-index: 15; /* 確保在圖片和「售完」標籤上方 */
-        }
-        
-        .carousel-buttons button {
-            background-color: rgba(0, 0, 0, 0.5);
-            border: none;
-            color: #fff;
-            padding: 10px;
-            cursor: pointer;
-        }
-        .search-form {
-            position: absolute;
-            top: 0;
-            right: 100%; /* 初始位置在圖標左側外面 */
-            display: flex; /* 使用 flex 來排版 */
-            align-items: center;
-            transform: translateX(-10px); /* 初始位置稍微向左偏移 */
-            transition: transform 0.8s ease, opacity 0.8s ease; /* 設定過渡時間 */
-            opacity: 0;
-            z-index: 10; /* 確保搜尋欄位在其他元素之上 */
-        }
-        
-        .search-form input[type="text"] {
-            padding: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin-right: 5px;
-        }
-        
-        .search-form button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        
-        .search-form button:hover {
-            background-color: #0056b3;
-        }
-        
-        /* 當滑鼠移到搜尋圖標或搜尋欄位時，觸發搜尋欄位和按鈕滑出動畫 */
-        .icons:hover .search-form,
-        .search-form.active {
-            transform: translateX(0); /* 搜尋欄位從左側滑出 */
-            opacity: 1; /* 確保搜尋欄位可見 */
-        }
-        
-        /* 當搜尋欄位失去焦點時，滑回效果 */
-        .search-form.hidden {
-            transform: translateX(-100%); /* 從圖標左側滑回去 */
-            opacity: 0;
-            display: none; /* 確保搜尋欄位在動畫結束後不顯示 */
-        }
-
-
-        .cart-icon {
-            position: relative;
-            display: inline-block;
-        }
-
-        .cart-badge {
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            background-color: #ff0000;
-            color: #fff;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            text-align: center;
-            line-height: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            display: none;
-        }
-
-        .ended-section {
-            margin-bottom: 40px; /* 增加底部邊距 */
-        }
-        .product-carousel.sold-out img {
-            opacity: 0.5;
-        }
-        .out-of-stock-label {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.5); /* 半透明背景 */
-            color: #fff;
-            padding: 10px 20px;
-            font-size: 24px;
-            z-index: 10;
-            text-align: center;
-            border-radius: 5px;
-        }
-        
-        /* 商品輪播區域和按鈕樣式 */
-        .carousel-images img {
-            width: 100%; /* 調整圖片寬度 */
-        }
-        
-        .carousel-buttons {
-            position: absolute;
-            top: 50%;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-        }
-        
-        .carousel-buttons .prev, .carousel-buttons .next {
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 24px;
-            padding: 10px;
-        }
-        
-        .carousel-buttons .prev:hover, .carousel-buttons .next:hover {
-            background-color: rgba(0, 0, 0, 0.8);
-        }
 
     </style>
 </head>
@@ -435,12 +537,25 @@
             <div class="logo-section">
                 <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='images/logo_home.png') }}" alt="Tea Lounge Logo" class="logo"></a>
             </div>
-            <nav>
-                <ul class="nav-links">
-                   <li><a href="{{ url_for('home') }}">所有商品</a></li>
-                   <li><a href="{{ url_for('group') }}">團購專區</a></li>
-                   <li><a href="{{ url_for('about') }}">關於我們</a></li>
-                   <li><a href="{{ url_for('contact') }}">聯絡我們</a></li>
+            <button class="openbtn">☰</button>
+            
+            <nav id="mobileMenu" style="display: none;">
+                <ul>
+                    <li><a href="{{ url_for('home') }}">所有商品</a></li>
+                    <li><a href="{{ url_for('group') }}">團購專區</a></li>
+                    <li><a href="{{ url_for('about') }}">關於我們</a></li>
+                    <li><a href="{{ url_for('contact') }}">聯絡我們</a></li>
+                </ul>
+            </nav>
+
+            
+            <!-- Desktop navigation -->
+            <nav id="desktopMenu">
+                <ul>
+                    <li><a href="{{ url_for('home') }}">所有商品</a></li>
+                    <li><a href="{{ url_for('group') }}">團購專區</a></li>
+                    <li><a href="{{ url_for('about') }}">關於我們</a></li>
+                    <li><a href="{{ url_for('contact') }}">聯絡我們</a></li>
                 </ul>
             </nav>
             <div class="icons">
@@ -659,22 +774,44 @@
     
         const searchIcon = document.querySelector('.search-icon');
         const searchForm = document.querySelector('.search-form');
-    
+        
+        // 檢查是否為手機版 (視窗寬度 <= 768 為手機版)
+        const isMobile = window.innerWidth <= 768;
+        
         if (searchIcon && searchForm) {
+            // 手機版及桌面版行為：點擊圖示顯示或隱藏搜尋欄
             searchIcon.addEventListener('click', function(event) {
                 event.preventDefault();
+                // 切換 active 狀態來顯示或隱藏
                 searchForm.classList.toggle('active');
+                searchForm.classList.toggle('hidden');  // 確保隱藏或顯示搜尋欄
             });
-    
-            // 當滑鼠移開搜尋圖標時，搜尋欄位慢慢滑回去
-            document.addEventListener('mousemove', function(event) {
-                const iconRect = searchIcon.getBoundingClientRect();
-                const formRect = searchForm.getBoundingClientRect();
-                if (!iconRect.contains(event.clientX, event.clientY) && !formRect.contains(event.clientX, event.clientY)) {
-                    searchForm.classList.remove('active');
-                }
-            });
+        
+            // 手機版一開始隱藏搜尋欄
+            if (isMobile) {
+                searchForm.classList.add('hidden');
+            }
         }
+        
+        // 側邊選單控制
+        const openBtn = document.querySelector('.openbtn');
+        if (openBtn) {
+            openBtn.addEventListener('click', toggleMenu);
+        }
+    
+        function toggleMenu() {
+            var menu = document.getElementById('mobileMenu');
+            var currentRight = window.getComputedStyle(menu).right;
+        
+            if (currentRight === '0px') {
+                menu.style.right = '-250px';  // 隱藏選單
+                menu.style.display = 'none';    // 確保選單不顯示
+            } else {
+                menu.style.right = '0px';       // 顯示選單
+                menu.style.display = 'block';    // 確保選單顯示
+            }
+        }
+
         // 用戶彈出框顯示切換
         const userPopup = document.getElementById('userPopup');
         if (userPopup) {
