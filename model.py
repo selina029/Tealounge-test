@@ -102,7 +102,7 @@ class Register(db.Model, UserMixin):
     Email = db.Column(db.String(250), nullable=False, unique=True)
     Password = db.Column(db.String(200), nullable=False)
     Birthday = db.Column(db.Date, nullable=False)
-    LineID = db.Column(db.String(100))
+    user_id = db.Column(db.String(50), db.ForeignKey('line_users.id'), nullable=True)  # 改為 user_id
     reset_token = db.Column(db.String(100), nullable=True)  # 新增的欄位
 
     def get_id(self):
@@ -111,23 +111,23 @@ class Register(db.Model, UserMixin):
     def is_active(self):
         return True  # 或者根據您的邏輯實現是否激活的判斷邏輯
 
-    def __init__(self, name, phone, email, password, birthday, line_id=None):
+    def __init__(self, name, phone, email, password, birthday, user_id=None):
         self.Name = name
         self.Phone = phone
         self.Email = email
         self.Password = generate_password_hash(password)
         self.Birthday = birthday
-        self.LineID = line_id
+        self.user_id = user_id  # 使用 user_id
 
     def check_password(self, password):
         return check_password_hash(self.Password, password)
 
-    def update_profile(self, name, phone, email, birthday, password, line_id=None):
+    def update_profile(self, name, phone, email, birthday, password, user_id=None):
         self.Name = name
         self.Phone = phone
         self.Email = email
         self.Birthday = birthday
-        self.LineID = line_id
+        self.user_id = user_id  # 使用 user_id
         if password:  # 如果傳入了新密碼，則進行更新
             self.Password = generate_password_hash(password)
             
@@ -147,11 +147,12 @@ class Orders(db.Model):
     OrderStatusID = db.Column(db.Integer, nullable=True, default=ORDER_STATUS_PENDING)
     PaymentStatusID = db.Column(db.Integer, nullable=True, default=PAYMENT_STATUS_UNPAID)
     DeliveryStatusID = db.Column(db.Integer, nullable=True, default=DELIVERY_STATUS_PREPARING)
-    
+    UserID = db.Column(db.String(50), nullable=True)  # 確保這行存在
+
     order_details = db.relationship('OrderDetails', backref='order', lazy=True)
 
     member = db.relationship('Register', backref=db.backref('orders', lazy=True))
-    
+
     @staticmethod
     def get_status_text(status_type, status_value):
         status_texts = {
@@ -199,6 +200,7 @@ class OrderDetails(db.Model):
 
     product = db.relationship('Product', backref=db.backref('order_details', lazy=True))
 
+
 class CartItem(db.Model):
     __tablename__ = 'cart_items'
     id = db.Column(db.Integer, primary_key=True, server_default=text("nextval('id_seq')"))
@@ -226,3 +228,4 @@ class LineUser(db.Model):
     user_id = db.Column(db.String(50), unique=True, nullable=False)
     joined_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    register = db.relationship('Register', backref='line_user', lazy=True)
