@@ -50,6 +50,80 @@
             width: 24px;
             height: 24px;
         }
+        .user-popup {
+            display: none;
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 150px;
+            background-color: #e1e9f4;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            z-index: 1000;
+        }
+        /* 手機版調整 */
+        @media (max-width: 768px) { /* 根據你的設計調整這個值 */
+            .user-popup {
+                top: 110px; /* 將 top 調整到一個適合的值以避免擋住圖示 */
+                right: 20px; /* 根據需求調整 */
+                width: 150px; /* 如果需要，可以保持寬度 */
+            }
+        }
+        .user-popup a {
+            display: block;
+            color: #5E6D79;
+            text-decoration: none;
+            padding: 5px 5px;
+            text-align: center;
+
+        }
+        .user-popup a:hover {
+            background-color: #E8EAE6;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #E8EAE6;
+            border: none;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+            color: #5E6D79;
+        }
+
+        .btn:hover {
+            background-color: #E8EAE6;
+        }
+        .icons img {
+            cursor: pointer;
+        }
+        
+        /* 手機版的樣式 */
+        @media (max-width: 768px) {
+            .header-container {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0 20px;
+            }
+        
+            /* 修改圖示排列方式 */
+            .icons {
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+            }
+        
+            .icons a:first-child {
+                margin-left: 0; /* 保證左邊的圖示貼齊 */
+            }
+        
+            .icons a:last-child {
+                margin-right: 0; /* 保證右邊的圖示貼齊 */
+            }
         .form-container {
             width: 80%;
             margin: 50px auto;
@@ -142,46 +216,6 @@
             margin: 10px 0 0;
             color: #9b9b9b;
             font-size: 10px;
-        }
-        .user-popup {
-            display: none;
-            position: absolute;
-            top: 60px; /* 調整位置 */
-            right: 20px; /* 調整位置 */
-            width: 150px;
-            background-color: #e1e9f4;
-            border: 1px solid #ccc;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            padding: 10px;
-            z-index: 1000;
-        }
-        .user-popup a {
-            display: block;
-            color: #333;
-            text-decoration: none;
-            padding: 5px 0;
-            text-align: center;
-        }
-        .user-popup a:hover {
-            background-color: #E8EAE6;
-        }
-        .btn {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            margin: 5px 0;
-            background-color: #E8EAE6;
-            border: none;
-            border-radius: 5px;
-            text-align: center;
-            cursor: pointer;
-            color: #5E6D79;
-        }
-        .btn:hover {
-            background-color: #E8EAE6;
-        }
-        .icons img {
-            cursor: pointer;
         }
         .logout-button {
             display: block;
@@ -276,6 +310,35 @@
         tbody td:nth-child(4):not(:last-child) {
             line-height: 1.4;
         }
+        @media screen and (max-width: 768px) {
+                .products {
+                    grid-template-columns: 1fr;
+                }
+            
+            
+                nav ul {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+            
+                nav ul li {
+                    margin: 10px 0;
+                }
+            
+                .menu-icon {
+                    display: block;
+                }
+            
+                .header-container {
+                    flex-direction: column;
+                }
+            
+                .icons {
+                    justify-content: space-between;
+                    width: 100%;
+                }
+            
+            }
     </style>
 </head>
 <body>
