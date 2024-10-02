@@ -74,6 +74,7 @@
     #_main_menu ul li a:hover {
       background-color: #305c7c;
     }
+
     @media (min-width: 1024px) {
       #_top_menu #_container {
         padding-left: 200px;
@@ -148,7 +149,6 @@
     
     }
 
-    /* 頂部選單按鈕樣式 */
     .openbtn {
         font-size: 20px;
         cursor: pointer;
@@ -362,7 +362,7 @@
     }
     #top_table_info .controller_container {
         display: flex;
-        justify-content: end !important;
+        justify-content: flex-end;
     }
     #top_table_info #search form {
         display: flex;
@@ -478,7 +478,7 @@
           left: -200px;
           transition: left 0.3s;
         }
-   
+    
         #_main_menu.active {
             left: 0; /* 顯示側邊選單 */
         }
@@ -584,10 +584,14 @@
                     <div class="pagination">
                         <ul>
                             {% if pagination %}
-                                {% for page_num in pagination.iter_pages() %}
-                                    <li class="{{ 'current' if page_num == pagination.page }}">
-                                        <a href="{{ url_for('products', page=page_num) }}">{{ page_num }}</a>
-                                    </li>
+                                {% for page_num in pagination.iter_pages(left_edge=2, right_edge=2, left_current=3, right_current=3) %}
+                                    {% if page_num %}
+                                        <li class="{{ 'current' if page_num == pagination.page }}">
+                                            <a href="{{ url_for('products', page=page_num, search_target=search_target, search_value=search_value) }}">{{ page_num }}</a>
+                                        </li>
+                                    {% else %}
+                                        <li class="disabled"><span>…</span></li>
+                                    {% endif %}
                                 {% endfor %}
                             {% endif %}
                         </ul>
@@ -597,10 +601,22 @@
         </div> 
     </div> 
       <script type="module">
-      document.querySelector(".openbtn").addEventListener("click", function() {
-        var menu = document.getElementById("_main_menu");
-        menu.classList.toggle("active");
-      });
+    document.querySelector(".openbtn").addEventListener("click", function () {
+      var menu = document.getElementById("_main_menu");
+      menu.classList.toggle("active");
+    });
+
+    // 點擊側邊欄以外的區域將側邊欄隱藏
+    document.addEventListener("click", function (event) {
+      var menu = document.getElementById("_main_menu");
+      var openBtn = document.querySelector(".openbtn");
+
+      // 如果點擊的不是側邊欄或者三條線按鈕，隱藏側邊欄
+      if (!menu.contains(event.target) && !openBtn.contains(event.target)) {
+        menu.classList.remove("active");
+      }
+    });
+
       
     document.addEventListener('DOMContentLoaded', () => {
       // Add event listeners for status toggle buttons
@@ -633,12 +649,11 @@
           const statusElement = button.closest('.row').querySelector('.status-column:nth-child(5)');
           statusElement.innerText = statusText;
     
-          // 通知首頁變更
-          await fetch('/notify_homepage', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ productId: productId, status: result.new_status })
-          });
+          // 根據新狀態決定是否從首頁移除產品
+          if (result.new_status === '下架') {
+            const productRow = button.closest('.row'); // 獲取該產品所在的行
+            productRow.style.display = 'none'; // 隱藏該行
+          }
         } else {
           console.error('Failed to toggle product status:', response.status);
         }
