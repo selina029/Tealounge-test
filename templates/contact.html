@@ -166,38 +166,12 @@
             cursor: pointer;
             color: #5E6D79;
         }
-
         .btn:hover {
             background-color: #E8EAE6;
         }
         .icons img {
             cursor: pointer;
         }
-        
-        /* 手機版的樣式 */
-        @media (max-width: 768px) {
-            .header-container {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 0 20px;
-            }
-        
-            /* 修改圖示排列方式 */
-            .icons {
-                width: 100%;
-                display: flex;
-                justify-content: space-between;
-            }
-        
-            .icons a:first-child {
-                margin-left: 0; /* 保證左邊的圖示貼齊 */
-            }
-        
-            .icons a:last-child {
-                margin-right: 0; /* 保證右邊的圖示貼齊 */
-            }
-        
         .logout-button {
             display: block;
             width: 100px;
@@ -253,13 +227,10 @@
             text-align: center;
             color: white;
         }
-        
         .background-image img {
             width: 100%;
             height: auto;
-            max-width: 100%; /* 限制最大寬度以避免圖片過大 */
         }
-        
         .background-text {
             position: absolute;
             top: 50%;
@@ -269,33 +240,53 @@
             background: rgba(0, 0, 0, 0.5);
             padding: 20px;
             border-radius: 10px;
-            width: 80%; /* 讓文字框在小螢幕上縮小 */
-            max-width: 600px; /* 限制最大寬度，避免在大螢幕上過大 */
         }
-        
+        /* Media query for smaller screens (e.g., tablets) */
         @media (max-width: 768px) {
             .background-text {
-                font-size: 14px; /* 在小螢幕上縮小字體大小 */
-                padding: 15px; /* 調整內距 */
-                width: 90%; /* 在小螢幕上讓框寬度更大 */
+                padding: 15px;
+                font-size: 1.2rem; /* Slightly smaller font */
             }
         }
         
+        /* Media query for very small screens (e.g., smartphones) */
         @media (max-width: 480px) {
             .background-text {
-                font-size: 12px; /* 在手機上進一步縮小字體 */
-                padding: 10px; /* 減少內距以適應更小的螢幕 */
+                padding: 10px;
+                font-size: 1rem; /* Even smaller font for small screens */
+                border-radius: 5px; /* Reduce border radius */
             }
         }
 
+        /* 手機版的樣式 */
+        @media (max-width: 768px) {
+            .header-container {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0 20px;
+            }
+        
+            /* 修改圖示排列方式 */
+            .icons {
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+            }
+        
+            .icons a:first-child {
+                margin-left: 0; /* 保證左邊的圖示貼齊 */
+            }
+        
+            .icons a:last-child {
+                margin-right: 0; /* 保證右邊的圖示貼齊 */
+            }
+        
         @media screen and (max-width: 768px) {
                 .products {
                     grid-template-columns: 1fr;
                 }
             
-                .products-container {
-                    padding-right: 10px; /* 調整右側空間 */
-                }
             
                 nav ul {
                     flex-direction: column;
@@ -319,13 +310,6 @@
                     width: 100%;
                 }
             
-                .search-form {
-                    top: auto;
-                    right: 0;
-                    transform: none;
-                    transition: none;
-                    opacity: 1;
-                }
             }
     </style>
 </head>
