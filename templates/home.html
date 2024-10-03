@@ -330,6 +330,20 @@
             color: #fff;
             border-color: #d2958a;
         }
+        @media (max-width: 768px) {
+            .pagination a {
+                padding: 8px 12px; /* 減小 padding 在較小螢幕上 */
+                margin: 0 3px; /* 減小間距 */
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .pagination a {
+                padding: 6px 8px; /* 進一步減小 padding */
+                font-size: 14px; /* 調整字體大小 */
+                margin: 0 2px; /* 調整間距 */
+            }
+        }
         footer {
             background-color: #fff;
             padding: 15px;
