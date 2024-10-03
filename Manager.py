@@ -20,7 +20,7 @@ from decimal import Decimal
 from flask import Flask, request
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage, QuickReply, QuickReplyButton, MessageAction, ImageSendMessage, FlexSendMessage, BubbleContainer
+from linebot.models import MessageEvent, TextMessage, TextSendMessage, QuickReply, QuickReplyButton, MessageAction, ImageSendMessage, FlexSendMessage, BubbleContainer, TemplateSendMessage, ButtonsTemplate, MessageTemplateAction
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from flask import session as flask_session
@@ -28,7 +28,8 @@ from linebot import LineBotApi, WebhookParser
 from linebot.exceptions import InvalidSignatureError, LineBotApiError
 from werkzeug.exceptions import BadRequest, Forbidden
 from sqlalchemy.exc import SQLAlchemyError
-import re
+import hashlib, re
+from hashlib import sha256
 
 # 訂單狀態代碼
 ORDER_STATUS_PENDING = 1  # 待確定
@@ -93,6 +94,24 @@ Session = sessionmaker(bind=engine)
 
 # Ensure model import is done after app is initialized
 from model import db, Manager, Product, ProductImage, Register, Orders, OrderDetails, CartItem, LineUser
+
+def hash_user_id(user_id):
+    return hashlib.sha256(user_id.encode()).hexdigest()
+
+def get_original_user_id(user_id_hash):
+    for user in LineUser.query.all():
+        if hashlib.sha256(user.user_id.encode()).hexdigest() == user_id_hash:
+            return user.user_id
+    return None
+
+def hash_order_id(order_id):
+    secret_key = "your_secret_key"
+    return sha256(f"{secret_key}{order_id}".encode()).hexdigest()
+
+# 反哈希函數，檢查哈希值是否與原始訂單編號匹配
+def verify_hash_order_id(hashed_id, order_id):
+    return hashed_id == hash_order_id(order_id)
+
 
 class User(UserMixin):
     def __init__(self, id, name=None, phone=None, email=None):
@@ -455,26 +474,37 @@ def handle_images(images, product_id):
         flash(f'處理圖片時發生錯誤: {e}', 'error')
         return None
 
-
 @app.route('/orders', methods=['GET', 'POST'])
 def orders():
     if not session.get('logged_in'):
         return redirect(url_for('manager_login'))
 
-    if request.method == 'POST':
-        data = request.get_json()
-        search_target = data.get('target')
-        search_value = data.get('value')
+    try:
+        if request.method == 'POST':
+            data = request.get_json()
+            search_target = data.get('target')
+            search_value = data.get('value')
 
-        if search_target and search_value:
-            all_orders = search_orders(search_target, search_value)
+            if search_target and search_value:
+                # 根據搜尋條件查詢訂單
+                all_orders = search_orders(search_target, search_value)
+            else:
+                # 如果沒有搜尋條件，顯示所有訂單
+                all_orders = Orders.query.all()
         else:
+            # GET 請求時顯示所有訂單
             all_orders = Orders.query.all()
 
-        return render_template('orders.html', orders=all_orders)
+        # 為每個訂單生成哈希值
+        for order in all_orders:
+            order.hash = hash_order_id(order.OrderID)
 
-    all_orders = Orders.query.all()
-    return render_template('orders.html', orders=all_orders)
+        return render_template('orders.html', orders=all_orders)
+    
+    except Exception as e:
+        print(f"Error retrieving or searching orders: {e}")
+        return "An error occurred while retrieving orders.", 500
+
 
 def search_orders(target, value):
     if target == 'id' and value.isdigit():
@@ -564,38 +594,53 @@ def search_orders_route():
 
     return jsonify(orders)
 
-@app.route('/orders/<int:order_id>', methods=['GET', 'POST'])
-def get_orders(order_id):
-    order = Orders.query.options(
-        db.joinedload(Orders.member),
-        db.joinedload(Orders.order_details).joinedload(OrderDetails.product)
-    ).filter_by(OrderID=order_id).first_or_404()
-    
-    if request.method == 'POST':
-        data = request.get_json()
-        new_order_status = data.get('order_status')
-        new_payment_status = data.get('payment_status')
-        new_delivery_status = data.get('delivery_status')
-        
-        if update_order_status(order_id, new_order_status, new_payment_status, new_delivery_status):
-            return jsonify({'status': 'success'})
-        else:
-            return jsonify({'status': 'error', 'message': '更新訂單狀態失敗'}), 400
-    
-    return render_template('orders.html', order=order)
+@app.route('/orders/<string:hashed_order_id>', methods=['GET', 'POST'])
+def get_orders(hashed_order_id):
+    try:
+        # 從所有訂單中尋找與哈希值匹配的訂單
+        orders = Orders.query.all()
+        order = next((order for order in orders if verify_hash_order_id(hashed_order_id, order.OrderID)), None)
 
-@app.route('/orderDetail/<int:order_id>')
-def orderDetail(order_id):
-    # 獲取訂單
-    order = db.session.get(Orders, order_id)
-    if not order:
-        abort(404)  # 如果訂單不存在，返回 404 錯誤
+        if not order:
+            print(f"No matching order found for hash: {hashed_order_id}")
+            abort(404, description="Order not found")
 
-    # 獲取訂單明細
-    order_details = db.session.query(OrderDetails).filter(OrderDetails.OrderID == order_id).all()
+        if request.method == 'POST':
+            data = request.get_json()
+            new_order_status = data.get('order_status')
+            new_payment_status = data.get('payment_status')
+            new_delivery_status = data.get('delivery_status')
 
-    # 傳遞訂單和訂單明細到模板
-    return render_template('orderDetail.html', order=order, order_details=order_details)
+            if update_order_status(order.OrderID, new_order_status, new_payment_status, new_delivery_status):
+                return jsonify({'status': 'success'})
+            else:
+                print(f"Failed to update order {order.OrderID} status")
+                return jsonify({'status': 'error', 'message': '更新訂單狀態失敗'}), 400
+
+        return render_template('orders.html', order=order)
+    except Exception as e:
+        print(f"Error in get_orders: {e}")
+        return "An error occurred while retrieving the order.", 500
+
+@app.route('/orderDetail/<string:hashed_order_id>')
+def orderDetail(hashed_order_id):
+    try:
+        # 從所有訂單中尋找與哈希值匹配的訂單
+        orders = Orders.query.all()
+        order = next((order for order in orders if verify_hash_order_id(hashed_order_id, order.OrderID)), None)
+
+        if not order:
+            print(f"No matching order found for hash: {hashed_order_id}")
+            abort(404, description="Order not found")
+
+        # 獲取訂單明細
+        order_details = db.session.query(OrderDetails).filter(OrderDetails.OrderID == order.OrderID).all()
+
+        return render_template('orderDetail.html', order=order, order_details=order_details)
+    except Exception as e:
+        print(f"Error in orderDetail: {e}")
+        return "An error occurred while retrieving the order details.", 500
+
 
 @app.route('/update-product-quantity', methods=['POST'])
 def update_product_quantity():
@@ -889,7 +934,12 @@ def index():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    user_id = request.args.get('user_id')  # 從查詢字符串獲取 user_id
+    user_id_hash = request.args.get('user_id')  # 從查詢字符串獲取哈希的 user_id
+    original_user_id = get_original_user_id(user_id_hash)  # 從資料庫獲取原始的 user_id
+
+    print(f"Received User ID Hash: {user_id_hash}")
+    print(f"Converted Original User ID: {original_user_id}")
+
     form = RegisterForm()
 
     if form.validate_on_submit():
@@ -901,7 +951,7 @@ def register():
         email = form.email.data
         password = form.password.data
         birthday = form.birthday.data
-        user_id = form.user_id.data  # 獲取用戶填寫的 user_id
+        user_id = form.user_id.data  # 直接從表單中獲取 user_id
 
         print(f"Name: {name}, Phone: {phone}, Email: {email}, Birthday: {birthday}, User ID: {user_id}")
 
@@ -911,7 +961,7 @@ def register():
             flash("此信箱或電話號碼已被註冊", "danger")
         else:
             # 創建新會員並保存到數據庫
-            member = Register(name=name, phone=phone, email=email, password=password, birthday=birthday, user_id=user_id)  # 將 user_id 存入資料模型中
+            member = Register(name=name, phone=phone, email=email, password=password, birthday=birthday, user_id=user_id)  # 使用表單獲取的 user_id
             db.session.add(member)
             try:
                 db.session.commit()
@@ -921,13 +971,10 @@ def register():
                 db.session.rollback()
                 flash(f"註冊失敗：{str(e)}", "danger")
     else:
-        # 如果表單驗證未通過，打印錯誤信息
         print(form.errors)
         flash("表單驗證失敗，請檢查輸入。", "danger")
-    
-    return render_template('register2.html', form=form, user_id=user_id)  # 將 user_id 傳遞給模板
 
-
+    return render_template('register2.html', form=form, user_id=original_user_id)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -1465,10 +1512,14 @@ def pay():
 def order():
     try:
         # 獲取當前用戶的會員編號
-        user_member_id = current_user.id  # 使用 current_user.id 獲取會員編號
+        user_member_id = current_user.id
         
         # 根據會員編號過濾訂單，只顯示該用戶的訂單
-        orders = Orders.query.filter_by(MemberID=user_member_id).all()  
+        orders = Orders.query.filter_by(MemberID=user_member_id).all()
+
+        # 為每個訂單生成哈希值
+        for order in orders:
+            order.hash = hash_order_id(order.OrderID)
         
         print(f"Orders for user {user_member_id}: {orders}")  # 打印當前用戶的訂單資料
         return render_template('order.html', orders=orders)
@@ -1476,16 +1527,21 @@ def order():
         print(f"Error retrieving orders for user {current_user.id}: {e}")
         return "An error occurred while retrieving orders.", 500
 
-@app.route('/order_detail/<int:order_id>')
+@app.route('/order_detail/<string:hashed_order_id>')
 @login_required
-def order_detail(order_id):
+def order_detail(hashed_order_id):
     try:
-        order = db.session.get(Orders, order_id)
+        # 從資料庫中查詢所有訂單
+        orders = Orders.query.all()
+
+        # 使用反哈希函數檢查哈希值是否匹配
+        order = next((order for order in orders if verify_hash_order_id(hashed_order_id, order.OrderID)), None)
+
         if order is None:
             abort(404)  # 如果找不到訂單，返回 404 錯誤
 
         # 查詢訂單的詳細資訊
-        order_details = db.session.query(OrderDetails).filter_by(OrderID=order_id).all()
+        order_details = db.session.query(OrderDetails).filter_by(OrderID=order.OrderID).all()
 
         # 確保只取一筆唯一的收貨人資訊
         unique_details = order_details[0] if order_details else None
@@ -1641,7 +1697,6 @@ def submit_order():
 
     return jsonify({'success': True})
 
-
 @app.route('/get_product_images', methods=['POST'])
 def get_product_images():
     data = request.json
@@ -1672,113 +1727,154 @@ def callback():
         for event in events:
             if isinstance(event, MessageEvent):  # 如果是訊息事件
                 user_id = event.source.user_id  # 獲取用戶的 user_id
-                
-                # 檢查用戶是否已經存在於資料庫中
-                existing_user = LineUser.query.filter_by(user_id=user_id).first()
+                user_message = event.message.text.strip()
 
-                # 如果用戶尚未註冊
-                if not existing_user:
-                    try:
-                        new_user = LineUser(user_id=user_id)
-                        db.session.add(new_user)
-                        db.session.commit()
-                        reply_text = "您尚未完成註冊，請點擊以下鏈接進行註冊：\n[註冊鏈接](https://example.com/register?user_id={})".format(user_id)
+                # 當用戶輸入 @會員 時
+                if user_message == '@會員':
+                    # 檢查用戶是否已經存在於資料庫中
+                    existing_user = LineUser.query.filter_by(user_id=user_id).first()
+
+                    if not existing_user:
+                        try:
+                            new_user = LineUser(user_id=user_id)
+                            db.session.add(new_user)
+                            db.session.commit()
+
+                            # 生成 user_id 的哈希
+                            user_id_hash = hashlib.sha256(user_id.encode()).hexdigest()
+                            reply_text = f"您尚未完成註冊，請點擊以下鏈接進行註冊：\n[註冊鏈接](https://你的網站地址/register?user_id={user_id_hash})"
+                            line_bot_api.reply_message(
+                                event.reply_token,
+                                TextSendMessage(text=reply_text)
+                            )
+                        except Exception as e:
+                            db.session.rollback()
+                            print(f"新增用戶時發生錯誤: {e}")
+                    else:
+                        # 用戶已經註冊
+                        reply_text = "您已是會員，歡迎使用官網下單！"
                         line_bot_api.reply_message(
                             event.reply_token,
                             TextSendMessage(text=reply_text)
                         )
-                    except Exception as e:
-                        db.session.rollback()
-                        print(f"新增用戶時發生錯誤: {e}")
-                    return 'OK'  # 回傳 OK，結束處理
 
-                # 確保用戶已註冊，處理訂單查詢
-                user_message = event.message.text.strip()
-                
-                if user_message == '@我想查詢訂單狀態':
-                    # 根據 line_users 表中的 user_id 查詢相對應的註冊用戶
-                    line_user = LineUser.query.filter_by(user_id=user_id).first()  # 根據 user_id 查詢 LineUser 表
-                    
+                elif user_message == '@我想查詢訂單狀態':
+                    line_user = LineUser.query.filter_by(user_id=user_id).first()
+
                     if line_user:
-                        # 獲取 line_user 對應的 register user_id
-                        register_user = Register.query.filter_by(user_id=line_user.user_id).first()  # 根據 line_user 的 user_id 查詢 Register 表
-                    
+                        register_user = Register.query.filter_by(user_id=line_user.user_id).first()
+
                         if register_user:
-                            member_id = register_user.MemberID  # 獲取對應的 MemberID
-                    
-                            # 根據 MemberID 查詢用戶的所有訂單
-                            orders = Orders.query.filter_by(MemberID=member_id).all()  # 使用會員ID來查詢
-                    
+                            member_id = register_user.MemberID
+                            orders = Orders.query.filter_by(MemberID=member_id).all()
+
                             if orders:
                                 if len(orders) == 1:
-                                    # 如果只找到一筆訂單，直接顯示
                                     order = orders[0]
                                     order_status_text = Orders.get_status_text('OrderStatusID', order.OrderStatusID)
                                     payment_status_text = Orders.get_status_text('PaymentStatusID', order.PaymentStatusID)
                                     delivery_status_text = Orders.get_status_text('DeliveryStatusID', order.DeliveryStatusID)
-                    
+
                                     reply_text = (f"訂單號碼: {order.OrderID}\n"
-                                                  f"訂單日期: {order.OrderDate}\n"
+                                                  f"訂單日期: {order.OrderDate.strftime('%Y-%m-%d')}\n"
                                                   f"訂單狀態: {order_status_text}\n"
                                                   f"付款狀態: {payment_status_text}\n"
                                                   f"運送狀態: {delivery_status_text}\n"
-                                                  f"總價: {order.TotalPrice}")
+                                                  f"總價: {order.TotalPrice}\n"
+                                                  f"訂單詳情連結: {url_for('order_detail', hashed_order_id=hash_order_id(order.OrderID), _external=True)}")
+
+                                    line_bot_api.reply_message(
+                                        event.reply_token,
+                                        TextSendMessage(text=reply_text)
+                                    )
                                 else:
-                                    # 如果有多筆訂單，列出相關的訂單日期供用戶選擇
-                                    order_dates = "\n".join([f"{i+1}. 訂單日期: {o.OrderDate}" for i, o in enumerate(orders)])
-                                    reply_text = (f"找到多筆訂單，請輸入訂單日期 (YYYY-MM-DD) 來查詢：\n{order_dates}")
+                                    # 生成按鈕樣板供用戶選擇訂單日期
+                                    actions = [
+                                        MessageTemplateAction(
+                                            label=f"訂單日期: {o.OrderDate.strftime('%Y-%m-%d')}",
+                                            text=f"{o.OrderDate.strftime('%Y-%m-%d')}"
+                                        ) for o in orders
+                                    ]
+                                    buttons_template = ButtonsTemplate(
+                                        title="查詢訂單",
+                                        text="請選擇要查詢的訂單日期，若有多筆相同日期訂單，會依訂單時間順序顯示。",
+                                        actions=actions[:4]  # 最多顯示四個按鈕（LINE 限制）
+                                    )
+                                    template_message = TemplateSendMessage(
+                                        alt_text="查詢訂單選擇",
+                                        template=buttons_template
+                                    )
+                                    line_bot_api.reply_message(event.reply_token, template_message)
                             else:
                                 reply_text = "找不到您的訂單。"
+                                line_bot_api.reply_message(
+                                    event.reply_token,
+                                    TextSendMessage(text=reply_text)
+                                )
+                        else:
+                            reply_text = "無法找到與您的帳號相關的註冊資料。"
+                            line_bot_api.reply_message(
+                                event.reply_token,
+                                TextSendMessage(text=reply_text)
+                            )
+                    else:
+                        reply_text = "您尚未註冊，請先完成註冊。"
+                        line_bot_api.reply_message(
+                            event.reply_token,
+                            TextSendMessage(text=reply_text)
+                        )
+
+                elif re.match(r'\d{4}-\d{2}-\d{2}', user_message):  # 點選日期後直接查詢結果
+                    order_date_str = user_message
+                    order_date = datetime.strptime(order_date_str, '%Y-%m-%d')
+                    start_of_day = datetime.combine(order_date, datetime.min.time())  # 修正時間部分
+                    end_of_day = datetime.combine(order_date, datetime.max.time())
+
+                    # 查詢該用戶在指定日期的訂單
+                    line_user = LineUser.query.filter_by(user_id=user_id).first()
+                    if line_user:
+                        register_user = Register.query.filter_by(user_id=line_user.user_id).first()
+                        if register_user:
+                            member_id = register_user.MemberID
+                            orders = Orders.query.filter(
+                                Orders.MemberID == member_id,
+                                Orders.OrderDate >= start_of_day,
+                                Orders.OrderDate <= end_of_day
+                            ).all()
+
+                            if orders:
+                                reply_text = "\n\n".join(
+                                    [f"訂單號碼: {order.OrderID}\n"
+                                     f"訂單日期: {order.OrderDate.strftime('%Y-%m-%d')}\n"
+                                     f"訂單狀態: {Orders.get_status_text('OrderStatusID', order.OrderStatusID)}\n"
+                                     f"付款狀態: {Orders.get_status_text('PaymentStatusID', order.PaymentStatusID)}\n"
+                                     f"運送狀態: {Orders.get_status_text('DeliveryStatusID', order.DeliveryStatusID)}\n"
+                                     f"總價: {order.TotalPrice}\n"
+                                     f"訂單詳情連結: {url_for('order_detail', hashed_order_id=hash_order_id(order.OrderID), _external=True)}"
+                                     for order in orders]
+                                )
+                            else:
+                                reply_text = "找不到該日期的訂單。"
                         else:
                             reply_text = "無法找到與您的帳號相關的註冊資料。"
                     else:
                         reply_text = "您尚未註冊，請先完成註冊。"
-                
+
                     line_bot_api.reply_message(
                         event.reply_token,
                         TextSendMessage(text=reply_text)
                     )
-                
-                # 如果用戶輸入日期以選擇訂單
-                elif re.match(r'\d{4}-\d{2}-\d{2}', user_message):  # 驗證日期格式 (YYYY-MM-DD)
-                    order_date_str = user_message  # 用戶輸入的日期字符串
-                    order_date = datetime.strptime(order_date_str, '%Y-%m-%d')  # 將字符串轉換為 datetime 對象
-                    start_of_day = order_date.replace(hour=0, minute=0, second=0)  # 設置為當天的開始時間
-                    end_of_day = order_date.replace(hour=23, minute=59, second=59)  # 設置為當天的結束時間
-                
-                    # 查詢該日期範圍內的訂單
-                    orders = Orders.query.filter(Orders.OrderDate >= start_of_day, Orders.OrderDate <= end_of_day).all()
-                
-                    if orders:
-                        # 找到該日期的訂單，顯示詳細資訊
-                        order_status_text = Orders.get_status_text('OrderStatusID', orders[0].OrderStatusID)
-                        payment_status_text = Orders.get_status_text('PaymentStatusID', orders[0].PaymentStatusID)
-                        delivery_status_text = Orders.get_status_text('DeliveryStatusID', orders[0].DeliveryStatusID)
-                
-                        # 如果有多筆訂單，可以將所有訂單的資訊顯示出來
-                        reply_text = "\n".join(
-                            [f"訂單號碼: {order.OrderID}\n"
-                             f"訂單日期: {order.OrderDate}\n"
-                             f"訂單狀態: {Orders.get_status_text('OrderStatusID', order.OrderStatusID)}\n"
-                             f"付款狀態: {Orders.get_status_text('PaymentStatusID', order.PaymentStatusID)}\n"
-                             f"運送狀態: {Orders.get_status_text('DeliveryStatusID', order.DeliveryStatusID)}\n"
-                             f"總價: {order.TotalPrice}\n" for order in orders]
-                        )
-                    else:
-                        reply_text = "找不到該日期的訂單。"
-                
-                    line_bot_api.reply_message(
-                        event.reply_token,
-                        TextSendMessage(text=reply_text)
-                    )
+
                 else:
-                    reply_text = ("無法辨識您的查詢。如果您想查詢訂單狀態，請輸入 '@我想查詢訂單狀態' 或正確的訂單日期 (YYYY-MM-DD)。")
+                    reply_text = "若有任何問題都歡迎與我們聯絡~"
                     line_bot_api.reply_message(
                         event.reply_token,
                         TextSendMessage(text=reply_text)
                     )
-                
-                return 'OK'
+
+        return 'OK'  # 確保最後返回 OK
+
+
 
 if __name__ == '__main__':
     app.run()
