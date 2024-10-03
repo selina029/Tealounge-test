@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>訂單管理</title>
   <style>
-    /* 主選單樣式 */
     #_main_menu {
       width: 200px;
       background-color: #40698b;
@@ -43,6 +42,7 @@
     #_main_menu ul li a:hover {
       background-color: #305c7c;
     }
+
     #_top_menu {
       position: fixed;
       top: 0;
@@ -60,8 +60,6 @@
       position: relative; /* 讓三條線按鈕能相對於這個容器定位 */
     
     }
-
-    /* 頂部選單按鈕樣式 */
     .openbtn {
         font-size: 20px;
         cursor: pointer;
@@ -76,7 +74,6 @@
         z-index: 1100; /* 確保按鈕在頂部選單之上 */
         display: none; /* 默認不顯示 */
     }
-
     #_top_menu ._container .content {
       padding: 0 15px;
       min-height: 50px;
@@ -307,7 +304,6 @@
       background-color: white;
       padding: 15px 15px 80px;
     }
-    /* 手機視圖下隱藏側邊欄預留空間 */
     @media (max-width: 1024px) {
         .openbtn {
             display: block; /* 顯示三條線按鈕 */
@@ -318,8 +314,10 @@
             left: -50%; /* 隱藏在螢幕左側 */
             top: 0; /* 從頂部開始 */
             height: 100vh; /* 高度與視窗高度相同 */
-            transition: left 0.3s ease;
-            display: block; /* 默認顯示 */
+            background-color: #40698b; /* 背景顏色 */
+            transition: left 0.3s ease; /* 過渡效果 */
+            position: fixed; /* 固定在螢幕左側 */
+            z-index: 1000; /* 設定層級確保位於其他元素之上 */
         }
     
         #_main_menu.active {
@@ -641,7 +639,7 @@
                       <div class="items">
                         {% for order in orders %}
                         <div class="row">
-                            <div class="td w10"><a href="{{ url_for('orderDetail', order_id=order.OrderID) }}">{{ order.OrderID }}</a></div>
+                            <div class="td w10"><a href="{{ url_for('orderDetail', hashed_order_id=order.hash) }}"> {{ order.OrderID }} </a> </div> 
                             <div class="td w10"><p>{{ order.OrderDate }}</p></div>
                             <div class="td w10">
                                 <p class="{% if order.OrderStatusID == 1 %}status_pending{% elif order.OrderStatusID == 2 %}status_handling{% elif order.OrderStatusID == 3 %}status_complete{% elif order.OrderStatusID == 4 %}status_cancel{% endif %}">
@@ -700,7 +698,20 @@
             menu.classList.toggle("active"); // 切換側邊選單的顯示狀態
         }
         
+        // 當點擊三條線時顯示/隱藏側邊欄
         document.querySelector('.openbtn').addEventListener('click', toggleMenu);
+        
+        // 點擊側邊欄以外的區域時隱藏側邊欄
+        document.addEventListener('click', function(event) {
+            var menu = document.getElementById("_main_menu");
+            var openBtn = document.querySelector('.openbtn');
+        
+            // 如果點擊的不是側邊欄或者三條線按鈕，隱藏側邊欄
+            if (!menu.contains(event.target) && !openBtn.contains(event.target)) {
+                menu.classList.remove("active");
+            }
+        });
+
 
         function order() {
           const searchBtn = document.getElementById('search_btn');
