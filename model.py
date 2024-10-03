@@ -144,15 +144,16 @@ class Orders(db.Model):
     Subtotal = db.Column(db.DECIMAL(10, 2), nullable=False)  # 新增小計欄位
     ShippingFee = db.Column(db.DECIMAL(10, 2), nullable=False, default=50.00)  # 新增運費欄位
     TotalPrice = db.Column(db.DECIMAL(10, 2), nullable=False)
-    OrderStatusID = db.Column(db.Integer, nullable=True, default=ORDER_STATUS_PENDING)
-    PaymentStatusID = db.Column(db.Integer, nullable=True, default=PAYMENT_STATUS_UNPAID)
-    DeliveryStatusID = db.Column(db.Integer, nullable=True, default=DELIVERY_STATUS_PREPARING)
-    UserID = db.Column(db.String(50), nullable=True)  # 確保這行存在
+    OrderStatusID = db.Column(db.Integer, nullable=False, default=ORDER_STATUS_PENDING)
+    PaymentStatusID = db.Column(db.Integer, nullable=False, default=PAYMENT_STATUS_UNPAID)
+    DeliveryStatusID = db.Column(db.Integer, nullable=False, default=DELIVERY_STATUS_PREPARING)
+    UserID = db.Column(db.String(50), nullable=False)  # 確保這行存在
 
     order_details = db.relationship('OrderDetails', backref='order', lazy=True)
 
     member = db.relationship('Register', backref=db.backref('orders', lazy=True))
-
+    
+        
     @staticmethod
     def get_status_text(status_type, status_value):
         status_texts = {
@@ -179,7 +180,8 @@ class Orders(db.Model):
         }
         
         return status_texts.get(status_type, {}).get(status_value, '未知狀態')
-    
+
+        
 class OrderDetails(db.Model):
     __tablename__ = 'order_details'
     DetailID = db.Column(db.Integer, primary_key=True, autoincrement=True, server_default=db.text("nextval('order_detail_id_seq')"))
