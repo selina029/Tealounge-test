@@ -241,11 +241,11 @@
             padding: 20px;
             border-radius: 10px;
         }
-        /* Media query for smaller screens (e.g., tablets) */
+       /* Media query for smaller screens (e.g., tablets) */
         @media (max-width: 768px) {
             .background-text {
                 padding: 15px;
-                font-size: 1.2rem; /* Slightly smaller font */
+                transform: translate(-50%, -50%) scale(0.9); /* 縮小整個文字區塊 */
             }
         }
         
@@ -253,8 +253,8 @@
         @media (max-width: 480px) {
             .background-text {
                 padding: 10px;
-                font-size: 1rem; /* Even smaller font for small screens */
-                border-radius: 5px; /* Reduce border radius */
+                transform: translate(-50%, -50%) scale(0.8); /* 進一步縮小文字區塊 */
+                border-radius: 5px; /* 縮小邊框圓角 */
             }
         }
 
