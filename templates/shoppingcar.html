@@ -854,8 +854,16 @@
                 menu.style.display = 'block';    // 確保選單顯示
             }
         }
-
-
+        
+        function toggleUserPopup() {
+            var popup = document.getElementById('userPopup');
+            popup.style.display = (popup.style.display === 'block') ? 'none' : 'block';
+        }
+        
+        function logout() {
+            // 假設你有一個登出路由 /logout
+            window.location.href = '/logout';
+        }    
 
     </script>
 
